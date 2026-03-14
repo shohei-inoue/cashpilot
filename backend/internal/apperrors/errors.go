@@ -22,4 +22,5 @@ var (
 	ErrGoalNotFound         = errors.New("goal not found")
 	ErrInvalidGoalName      = errors.New("goal name is required")
 	ErrInvalidTargetAmount  = errors.New("target amount must be positive")
+	ErrInvalidSimulationPeriod = errors.New("period_months must be between 1 and 120")
 )
