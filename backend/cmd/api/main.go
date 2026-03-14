@@ -41,6 +41,7 @@ func main() {
 	logicRouter.SetupAuth(api, pool, cfg.JWTSecret)
 	logicRouter.SetupUser(api, pool, cfg.JWTSecret)
 	logicRouter.SetupAccount(api, pool, cfg.JWTSecret)
+	logicRouter.SetupCategory(api, pool, cfg.JWTSecret)
 
 	r.Run(":8080")
 }
