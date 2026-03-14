@@ -18,7 +18,7 @@ pnpm install
 pnpm dev
 ```
 
-開発サーバー起動後、[http://localhost:3000](http://localhost:3000) でアプリを確認できる。
+開発サーバー起動後、[http://localhost:3010](http://localhost:3010) でアプリを確認できる。
 
 ## スクリプト
 

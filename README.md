@@ -41,5 +41,24 @@ cashpilot
 ├ frontend
 ├ backend
 ├ docs
+├ docker-compose.yml
+├ start.sh
 └ .github
 ```
+
+## ローカル開発（Docker）
+
+FE・BE・PostgreSQL を一括で起動する場合:
+
+```bash
+./start.sh
+# または
+docker compose up --build
+```
+
+起動後:
+- フロントエンド: http://localhost:3010
+- バックエンド: http://localhost:8080
+- PostgreSQL: localhost:5432
+
+初回は `.env.example` をコピーして `.env` を作成する（`start.sh` が自動作成する）。
