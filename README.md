@@ -26,14 +26,12 @@ CashPilotは、個人のキャッシュフローシミュレーターと収支�
 | フロントエンド | TypeScript, Next.js, React, SCSS Modules |
 | バックエンド | Go, Gin |
 | データベース | PostgreSQL |
-| インフラストラクチャ | Docker |
+| インフラストラクチャ | Docker（ローカル開発） |
 | CI/CD | GitHub Actions |
-| デプロイ環境 | Vercel |
+| デプロイ | 将来検討（AWS / Fly.io 等） |
 | マイグレーション | golang-migrate |
-| 認証 | Supabase Auth |
-| ストレージ | Supabase |
-| インフラ(将来実装) | Terraform |
-| パッケージ管理 | pnpm(Node.js) Go Modules|
+| 認証 | 未定（メール＋パスワード or 外部 ID プロバイダ） |
+| パッケージ管理 | pnpm（Node.js）、Go Modules |
 
 ## プロジェクト構造
 ```

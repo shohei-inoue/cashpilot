@@ -12,8 +12,8 @@ CashPilot のバックエンドは Go + Gin を用いた REST API とし、プ�
 ### 1. 全体方針（バックエンド）
 
 - **認証**
-  - Supabase Auth など外部認証基盤を利用し、バックエンドでは「発行済みトークンの検証」のみ行う。
-  - すべてのアプリ本体 API は「認証必須」とする（MVP時点でパブリックAPIは想定しない）。
+  - 外部認証基盤を利用する場合、バックエンドでは「発行済みトークンの検証」のみ行う。
+  - すべてのアプリ本体 API は「認証必須」とする（MVP 時点でパブリック API は想定しない）。
 - **ドメイン**
   - ユーザーごとの口座（accounts）・カテゴリ（categories）・取引（transactions）・目標（goals）を管理し、家計管理・キャッシュフロー分析・シミュレーションに必要なデータと計算結果を提供する。
 - **アーキテクチャ**
@@ -30,7 +30,7 @@ DB 設計は **Ledger 型 + User ownership**。正本は [database.md](./databas
 
 | エンティティ | 役割 | 備考 |
 |-------------|------|------|
-| **users** | 認証主体。`id` (serial) を PK、`uuid` を Supabase Auth 連携用。 | 全データは `user_id` (users.id) でスコープ。 |
+| **users** | 認証主体。`id` (serial) を PK、`uuid` を認証連携用。 | 全データは `user_id` (users.id) でスコープ。 |
 | **accounts** | お金の「場所」（銀行・クレカ・現金）。 | `type`: cash / bank / credit。 |
 | **categories** | 収入・支出のカテゴリ。 | `type`: income / expense。ユーザーごと。 |
 | **transactions** | 1件の金銭移動。Ledger の中心。 | `amount`: 収入は正・支出は負。`occurred_at` で時系列。 |

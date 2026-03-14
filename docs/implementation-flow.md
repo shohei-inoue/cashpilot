@@ -29,11 +29,11 @@ Phase 6: 結合・デプロイ
 | 項目 | 内容 |
 |------|------|
 | リポジトリ | `frontend` / `backend` / `docs` / `.github` の構成を確定。モノレポ or 別リポジトリは方針に応じて。 |
-| Supabase | プロジェクト作成。`auth.users` を利用するため、メール認証を有効化。接続情報（URL, anon key, service role はバックエンド用）を取得。 |
-| 環境変数 | バックエンド: DB URL, Supabase URL, JWT 検証用の secret。フロント: API ベース URL, Supabase anon key。 |
-| ローカル DB | 開発時は Supabase のリモート DB を使うか、PostgreSQL をローカルで立てて接続するか決定。 |
+| 認証 | メール＋パスワード or 外部 ID プロバイダ。認証基盤は別途決定。 |
+| 環境変数 | バックエンド: DB URL、認証用の secret 等。フロント: API ベース URL。 |
+| ローカル DB | Docker Compose で PostgreSQL をローカル起動（[infra.md](./infra.md) 参照）。 |
 
-**成果物**: 接続できる Supabase プロジェクト、`.env.example` の整備。
+**成果物**: ローカル開発環境、`.env.example` の整備。
 
 ---
 
@@ -43,7 +43,7 @@ Phase 6: 結合・デプロイ
 
 | 順番 | マイグレーション | 内容 |
 |------|-----------------|------|
-| 1 | `001_users` | `users`（id: serial PK、uuid: Supabase Auth 連携用、email）。 |
+| 1 | `001_users` | `users`（id: serial PK、uuid: 認証連携用、email）。 |
 | 2 | `002_account_types` | 口座種別マスタ（cash, bank, credit）。タグ選択用。 |
 | 3 | `003_accounts` | `accounts`（user_id, account_type_id, name）。 |
 | 4 | `004_category_types` | カテゴリ種別マスタ（income, expense）。タグ選択用。 |
@@ -52,8 +52,8 @@ Phase 6: 結合・デプロイ
 | 7 | `007_goals` | `goals`（user_id, name, target_amount, deadline）。 |
 
 **補足**
-- マイグレーションツール: Supabase CLI / golang-migrate / Goose など、プロジェクトで 1 つに統一。
-- 初回利用時: サインアップ時に `users` に 1 件挿入するか、Auth の webhook で作成するか決める。
+- マイグレーションツール: golang-migrate を使用（[migration.md](./migration.md) 参照）。
+- 初回利用時: サインアップ時に `users` に 1 件挿入するか、認証基盤の webhook で作成するか決める。
 
 **成果物**: 上記 7 本のマイグレーションが適用されたスキーマ。必要ならシード（デフォルトカテゴリなど）を追加。
 
@@ -65,7 +65,7 @@ Phase 6: 結合・デプロイ
 |------|--------|------|
 | 2-1 | プロジェクト初期化 | Go モジュール、Gin ルーター、`/api` プレフィックス。CORS 設定。 |
 | 2-2 | DB 接続 | PostgreSQL 接続プール。環境変数から URL を読む。 |
-| 2-3 | 認証ミドルウェア | Supabase Auth の JWT を検証し、`user_id` をコンテキストに格納。未認証は 401。 |
+| 2-3 | 認証ミドルウェア | 認証トークン（JWT 等）を検証し、`user_id` をコンテキストに格納。未認証は 401。 |
 | 2-4 | ヘルスチェック | `GET /api/health` など、起動・DB 接続確認用。 |
 
 **成果物**: 認証必須の `/api/*` にアクセスできる骨組み。この時点ではまだ CRUD は未実装でよい。
@@ -96,8 +96,8 @@ Phase 6: 結合・デプロイ
 
 | 順番 | タスク | 内容 |
 |------|--------|------|
-| 4-1 | プロジェクト初期化 | Next.js (App Router), TypeScript, SCSS Modules。環境変数で API ベース URL と Supabase anon key を設定。 |
-| 4-2 | 認証 UI | サインアップ・ログイン画面。Supabase Auth の `signUp` / `signInWithPassword`。ログイン後にダッシュボードへリダイレクト。 |
+| 4-1 | プロジェクト初期化 | Next.js (App Router), TypeScript, SCSS Modules。環境変数で API ベース URL を設定。 |
+| 4-2 | 認証 UI | サインアップ・ログイン画面。認証基盤に合わせて実装。ログイン後にダッシュボードへリダイレクト。 |
 | 4-3 | 認証状態の保持 | セッション・トークンの保持。API 呼び出し時に `Authorization: Bearer <token>` を付与する共通クライアント（fetch または Axios）を用意。 |
 | 4-4 | レイアウト・ナビ | 認証済みユーザー向けのレイアウト（ヘッダー、ナビ: ダッシュボード／収支入力／シミュレーション／目標・設定、ログアウト）。未認証時はログインへリダイレクト。 |
 
@@ -128,27 +128,26 @@ Phase 6: 結合・デプロイ
 
 ## Phase 6: 結合・デプロイ
 
+ローカルでの結合確認を優先。本番デプロイは実装が進んでから検討（AWS / Fly.io 等、[infra.md](./infra.md) 参照）。
+
 | 順番 | タスク | 内容 |
 |------|--------|------|
 | 6-1 | ローカル結合 | バックエンドとフロントを同時に起動し、サインアップ → 口座・カテゴリ作成 → 取引登録 → ダッシュボード・シミュレーション確認。 |
 | 6-2 | エラーハンドリングの統一 | API エラー時のメッセージ表示、ネットワークエラー時のリトライやメッセージ。 |
-| 6-3 | 環境変数・シークレット | 本番用の Supabase プロジェクト、環境変数を Vercel（FE）とバックエンドのホスティング先に設定。 |
-| 6-4 | フロントエンドのデプロイ | Vercel に Next.js をデプロイ。API ベース URL を本番バックエンドに向ける。 |
-| 6-5 | バックエンドのデプロイ | Docker イメージをビルドし、Fly.io / Render / Cloud Run などにデプロイ。DB は Supabase の本番 DB を参照。 |
-| 6-6 | CI/CD | `.github/workflows` で lint / test、フロント・バックのビルド、必要なら自動デプロイ。 |
+| 6-3 | 本番デプロイ（将来） | 実装完了後にデプロイ環境（AWS / Fly.io 等）を選定し、環境変数・CI/CD を整備。 |
 
-**成果物**: 本番環境で一連の操作ができる状態。ドキュメント（README、環境構築手順）の更新。
+**成果物**: ローカルで一連の操作ができる状態。ドキュメント（README、環境構築手順）の更新。
 
 ---
 
 ## マイルストーン（チェックリスト）
 
-- [ ] **M1** Phase 0〜1 完了: Supabase 接続とマイグレーション適用
+- [ ] **M1** Phase 0〜1 完了: ローカル環境構築とマイグレーション適用
 - [ ] **M2** Phase 2〜3-3 完了: 認証付きで CRUD API がすべて動く
 - [ ] **M3** Phase 3-4〜3-5 完了: 集計・シミュレーション API が動く
 - [ ] **M4** Phase 4 完了: ログイン〜ダッシュボード骨組みまで表示
 - [ ] **M5** Phase 5 完了: 全画面がつながり、一通り操作できる
-- [ ] **M6** Phase 6 完了: 本番デプロイと CI/CD が動作
+- [ ] **M6** Phase 6 完了: ローカル結合確認が完了（本番デプロイは将来検討）
 
 ---
 
@@ -158,4 +157,4 @@ Phase 6: 結合・デプロイ
 - [database.md](./database.md) - DB 設計・マイグレーション順
 - [backend.md](./backend.md) - API 設計・ドメイン
 - [frontend.md](./frontend.md) - 画面・UI 仕様
-- [infra.md](./infra.md) - Docker・CI/CD（未作成時は Phase 6 で必要に応じて整備）
+- [infra.md](./infra.md) - ローカル開発環境。デプロイは将来検討。

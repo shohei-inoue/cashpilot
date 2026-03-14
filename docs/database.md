@@ -40,7 +40,7 @@ users
 ## 1. users
 
 - **id**: serial（連番）を主キーとする。内部の参照・結合には `id` を使用。
-- **uuid**: Supabase Auth 連携用。`auth.users.id` と紐付ける場合はこのカラムを使用。
+- **uuid**: 認証連携用。外部認証基盤のユーザー ID と紐付ける場合はこのカラムを使用。
 
 ```sql
 CREATE TABLE users (

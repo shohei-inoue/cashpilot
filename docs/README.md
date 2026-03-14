@@ -49,10 +49,10 @@ MVPでは、以下の機能にフォーカスする（詳細は [database.md](./
   - 個人利用を前提とした少量データを想定し、シンプルな構成とする。
   - グラフ描画・シミュレーションは、1〜数秒以内に応答。
 - **セキュリティ**
-  - 認証はメール＋パスワード or 外部IDプロバイダ（Supabase Authを想定）。
+  - 認証はメール＋パスワード or 外部 ID プロバイダを想定。
   - パスワードなどセンシティブ情報はバックエンドで扱わず、認証基盤に委譲。
 - **可用性**
-  - 個人プロダクトとして、24/7の厳密なSLAは設けないが、Vercel＋Supabase標準機能の範囲で安定稼働を目指す。
+  - 個人プロダクトとして、24/7 の厳密な SLA は設けない。
 
 ### 5. 全体アーキテクチャ方針（概要）
 
@@ -60,11 +60,10 @@ MVPでは、以下の機能にフォーカスする（詳細は [database.md](./
   - Next.js（App Router）を採用。画面（ダッシュボード、口座・カテゴリ・取引・目標、シミュレーション）、認証連携、グラフ描画を担当。
 - **バックエンド**
   - Go（Gin）で REST API。口座・カテゴリ・取引・目標の CRUD、キャッシュフロー集計、シミュレーション計算、認証トークン検証を担当。
-- **データベース／ストレージ**
-  - PostgreSQL（Supabase）。users / accounts / categories / transactions / goals を保存（[database.md](./database.md) 参照）。バックアップ・権限は Supabase 標準を前提とする。
+- **データベース**
+  - PostgreSQL。users / accounts / categories / transactions / goals を保存（[database.md](./database.md) 参照）。
 - **インフラ・デプロイ**
-  - フロントエンドはVercelへデプロイ。
-  - バックエンドはDockerコンテナ化し、将来的に適切なホスティング（Supabase Edge Functions / Fly.io / Render など）を検討。
+  - ローカル開発は Docker Compose で一括起動。本番デプロイは実装が進んでから検討（[infra.md](./infra.md) 参照）。
 
 ### 6. 開発の進め方（レイヤ別の詳細設計・実装フロー）
 
@@ -76,7 +75,7 @@ MVPでは、以下の機能にフォーカスする（詳細は [database.md](./
 - `docs/backend.md`: API設計、ドメインモデル（DB との対応）、シミュレーションロジック、エラーハンドリング方針など
 - `docs/backend-architecture.md`: **バックエンドアーキテクチャ**（クリーンアーキテクチャ）。ディレクトリ構成、レイヤー、ファイル命名、ルーティング方針
 - `docs/frontend.md`: 画面一覧、UIフロー、主要コンポーネント構成、状態管理方針など
-- `docs/infra.md`: Docker構成、ローカル開発環境、CI/CDパイプライン、デプロイ戦略など（未作成時は Phase 6 で整備）
+- `docs/infra.md`: ローカル開発環境（Docker Compose）。デプロイは将来検討。
 
 本`README.md`は、上記の詳細ドキュメントの親となる「全体方針」として運用する。
 
