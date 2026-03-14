@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"backend/internal/controller"
+	"backend/internal/logic/controller"
 
 	"github.com/gin-gonic/gin"
 )

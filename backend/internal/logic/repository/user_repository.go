@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"backend/internal/domain"
+	"backend/internal/logic/domain"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"

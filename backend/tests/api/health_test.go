@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"backend/internal/middleware"
-	"backend/internal/router"
+	logicRouter "backend/internal/logic/router"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +17,7 @@ func TestHealth(t *testing.T) {
 	r.Use(middleware.CORS())
 
 	api := r.Group("/api")
-	router.Setup(api, nil, "") // nil, "" = DB・認証スキップ（テスト用）
+	logicRouter.SetupHealth(api, nil) // nil = DB 接続チェックをスキップ
 
 	req := httptest.NewRequest(http.MethodGet, "/api/health", nil)
 	rec := httptest.NewRecorder()

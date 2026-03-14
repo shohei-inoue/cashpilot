@@ -1,10 +1,12 @@
 package controller
 
 import (
+	"errors"
 	"net/http"
 
+	"backend/internal/apperrors"
+	"backend/internal/logic/usecase"
 	"backend/internal/middleware"
-	"backend/internal/repository"
 	"backend/internal/response"
 
 	"github.com/gin-gonic/gin"
@@ -12,12 +14,12 @@ import (
 
 // UserController は認証済みユーザー情報用コントローラー
 type UserController struct {
-	userRepo repository.UserRepository
+	userUsecase usecase.UserUsecase
 }
 
 // NewUserController は UserController を生成する
-func NewUserController(userRepo repository.UserRepository) *UserController {
-	return &UserController{userRepo: userRepo}
+func NewUserController(userUsecase usecase.UserUsecase) *UserController {
+	return &UserController{userUsecase: userUsecase}
 }
 
 // Get は GET /api/user。認証必須。
@@ -28,13 +30,14 @@ func (u *UserController) Get(c *gin.Context) {
 		return
 	}
 
-	user, err := u.userRepo.FindByID(c.Request.Context(), userID)
+	user, err := u.userUsecase.GetUser(c.Request.Context(), userID)
 	if err != nil {
-		response.Error(c, http.StatusInternalServerError, response.CodeDatabaseError, response.MsgDatabaseError)
-		return
-	}
-	if user == nil {
-		response.Error(c, http.StatusNotFound, response.CodeNotFound, response.MsgUserNotFound)
+		switch {
+		case errors.Is(err, apperrors.ErrUserNotFound):
+			response.Error(c, http.StatusNotFound, response.CodeNotFound, response.MsgUserNotFound)
+		default:
+			response.Error(c, http.StatusInternalServerError, response.CodeDatabaseError, response.MsgDatabaseError)
+		}
 		return
 	}
 

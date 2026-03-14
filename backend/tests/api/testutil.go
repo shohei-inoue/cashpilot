@@ -6,7 +6,7 @@ import (
 	"backend/db"
 	"backend/internal/config"
 	"backend/internal/middleware"
-	"backend/internal/router"
+	logicRouter "backend/internal/logic/router"
 
 	"github.com/gin-gonic/gin"
 )
@@ -35,6 +35,8 @@ func SetupRouterWithDB() (*gin.Engine, error) {
 	})
 
 	api := r.Group("/api")
-	router.Setup(api, pool, jwtSecret)
+	logicRouter.SetupHealth(api, pool)
+	logicRouter.SetupAuth(api, pool, jwtSecret)
+	logicRouter.SetupUser(api, pool, jwtSecret)
 	return r, nil
 }

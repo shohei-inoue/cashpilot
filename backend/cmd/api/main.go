@@ -7,7 +7,7 @@ import (
 	"backend/db"
 	"backend/internal/config"
 	"backend/internal/middleware"
-	"backend/internal/router"
+	logicRouter "backend/internal/logic/router"
 
 	"github.com/gin-gonic/gin"
 )
@@ -37,7 +37,9 @@ func main() {
 
 	// /api プレフィックス
 	api := r.Group("/api")
-	router.Setup(api, pool, cfg.JWTSecret)
+	logicRouter.SetupHealth(api, pool)
+	logicRouter.SetupAuth(api, pool, cfg.JWTSecret)
+	logicRouter.SetupUser(api, pool, cfg.JWTSecret)
 
 	r.Run(":8080")
 }

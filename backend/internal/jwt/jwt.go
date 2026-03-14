@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"backend/internal/domain"
+	"backend/internal/logic/domain"
 
 	"github.com/golang-jwt/jwt/v5"
 )
