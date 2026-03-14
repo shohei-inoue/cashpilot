@@ -30,7 +30,7 @@ CashPilotは、個人のキャッシュフローシミュレーターと収支�
 | CI/CD | GitHub Actions |
 | デプロイ | 将来検討（AWS / Fly.io 等） |
 | マイグレーション | golang-migrate |
-| 認証 | 未定（メール＋パスワード or 外部 ID プロバイダ） |
+| 認証 | JWT + httpOnly Cookie（メール＋パスワード） |
 | パッケージ管理 | pnpm（Node.js）、Go Modules |
 
 ## プロジェクト構造

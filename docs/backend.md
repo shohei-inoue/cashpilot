@@ -55,11 +55,11 @@ DB 設計は **Ledger 型 + User ownership**。正本は [database.md](./databas
 
 #### 3-1. 認証関連
 
-バックエンドとしては、主に「トークン検証ミドルウェア」を提供するイメージ。
+JWT + httpOnly Cookie 方式。詳細は [auth.md](./auth.md) を参照。
 
-- **HTTP Header**
-  - `Authorization: Bearer <access_token>`
-- Gin のミドルウェアでトークンを検証し、`user_id` をコンテキストに埋め込む。
+- **Cookie**: `token` に JWT を格納。`HttpOnly`, `SameSite=Strict`。
+- **エンドポイント**: `POST /api/auth/signup`, `POST /api/auth/login`, `POST /api/auth/logout`
+- ミドルウェアで Cookie の JWT を検証し、`user_id` をコンテキストに埋め込む。
 
 #### 3-2. ユーザー・アカウント・カテゴリ API
 
