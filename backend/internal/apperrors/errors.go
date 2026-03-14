@@ -15,4 +15,8 @@ var (
 	ErrCategoryNotFound     = errors.New("category not found")
 	ErrInvalidCategoryType  = errors.New("invalid category type")
 	ErrInvalidCategoryName  = errors.New("category name is required")
+	ErrTransactionNotFound  = errors.New("transaction not found")
+	ErrInvalidAmount        = errors.New("amount must not be zero")
+	ErrInvalidAccountRef    = errors.New("account does not belong to user")
+	ErrInvalidCategoryRef   = errors.New("category does not belong to user")
 )
