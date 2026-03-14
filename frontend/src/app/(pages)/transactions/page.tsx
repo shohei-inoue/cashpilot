@@ -1,11 +1,11 @@
 import MainContainer from '@/app/components/MainContainer/MainContainer';
 import MainContent from '@/app/components/MainContent/MainContent';
 
-export default function Dashboard() {
+export default function Transactions() {
   return (
     <MainContainer>
       <MainContent>
-        <h1>Dashboard</h1>
+        <h1>Transactions</h1>
       </MainContent>
     </MainContainer>
   );
