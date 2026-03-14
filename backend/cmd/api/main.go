@@ -40,6 +40,12 @@ func main() {
 	logicRouter.SetupHealth(api, pool)
 	logicRouter.SetupAuth(api, pool, cfg.JWTSecret)
 	logicRouter.SetupUser(api, pool, cfg.JWTSecret)
+	logicRouter.SetupAccount(api, pool, cfg.JWTSecret)
+	logicRouter.SetupCategory(api, pool, cfg.JWTSecret)
+	logicRouter.SetupAnalytics(api, pool, cfg.JWTSecret)
+	logicRouter.SetupTransaction(api, pool, cfg.JWTSecret)
+	logicRouter.SetupGoal(api, pool, cfg.JWTSecret)
+	logicRouter.SetupSimulation(api, pool, cfg.JWTSecret)
 
 	r.Run(":8080")
 }
