@@ -17,10 +17,8 @@ CashPilot のバックエンドは Go + Gin を用いた REST API とし、プ�
 - **ドメイン**
   - ユーザーごとの口座（accounts）・カテゴリ（categories）・取引（transactions）・目標（goals）を管理し、家計管理・キャッシュフロー分析・シミュレーションに必要なデータと計算結果を提供する。
 - **アーキテクチャ**
-  - シンプルなレイヤード構成を想定:
-    - handler（Gin のハンドラー / HTTP レイヤ）
-    - service（ドメインロジック・ユースケース）
-    - repository（DB アクセス）
+  - クリーンアーキテクチャに沿ったレイヤー構成。詳細は [backend-architecture.md](./backend-architecture.md) を参照。
+  - Domain / Usecase / Controller / Repository に分け、`internal` 直下で `router` が各 API のルートを定義し、`controller` がハンドラーを提供する。
 - **DB設計**
   - **スキーマ・DDL・インデックス・代表クエリは [database.md](./database.md) を参照**。本ドキュメントでは API とドメインの対応のみ要約する。
 

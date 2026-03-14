@@ -73,6 +73,7 @@ MVPでは、以下の機能にフォーカスする（詳細は [database.md](./
 - **`docs/implementation-flow.md`**: **実装の順序と依存関係**。Phase 0（環境）→ 1（DB）→ 2（BE 基盤）→ 3（BE API）→ 4（FE 基盤）→ 5（FE 画面）→ 6（結合・デプロイ）。マイルストーン付き。
 - `docs/database.md`: **DB設計 v1**（Ledger型 + User ownership）。テーブル定義、インデックス、代表クエリ、将来拡張（budgets, recurring_transactions, simulation_runs）
 - `docs/backend.md`: API設計、ドメインモデル（DB との対応）、シミュレーションロジック、エラーハンドリング方針など
+- `docs/backend-architecture.md`: **バックエンドアーキテクチャ**（クリーンアーキテクチャ）。ディレクトリ構成、レイヤー、ファイル命名、ルーティング方針
 - `docs/frontend.md`: 画面一覧、UIフロー、主要コンポーネント構成、状態管理方針など
 - `docs/infra.md`: Docker構成、ローカル開発環境、CI/CDパイプライン、デプロイ戦略など（未作成時は Phase 6 で整備）
 
