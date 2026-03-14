@@ -102,6 +102,11 @@ backend/
 │       ├── goal_router.go
 │       └── simulation_router.go
 └── db/
+    ├── migrations/              # DB マイグレーション（001〜007）
+    │   ├── 000001_users.up.sql
+    │   ├── 000002_account_types.up.sql
+    │   ├── 000003_accounts.up.sql
+    │   └── ...
     ├── account_repository_impl.go
     ├── category_repository_impl.go
     ├── transaction_repository_impl.go

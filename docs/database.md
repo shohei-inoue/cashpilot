@@ -18,9 +18,11 @@ Ledger型設計 + User ownership を採用し、将来拡張も見据えたス�
 ```
 users
   │
-  ├── accounts
+  ├── account_types（口座種別マスタ: cash, bank, credit）
+  ├── accounts      ← account_type_id で account_types を参照
   │
-  ├── categories
+  ├── category_types（カテゴリ種別マスタ: income, expense）
+  ├── categories    ← category_type_id で category_types を参照
   │
   ├── transactions
   │
@@ -37,12 +39,13 @@ users
 
 ## 1. users
 
-Supabase を使う場合は `auth.users` と紐付ける。  
-アプリ側の `users.id` は **Supabase の `auth.users.id`** を利用する。
+- **id**: serial（連番）を主キーとする。内部の参照・結合には `id` を使用。
+- **uuid**: Supabase Auth 連携用。`auth.users.id` と紐付ける場合はこのカラムを使用。
 
 ```sql
 CREATE TABLE users (
-  id uuid PRIMARY KEY,
+  id serial PRIMARY KEY,
+  uuid uuid UNIQUE NOT NULL DEFAULT gen_random_uuid(),
   email text UNIQUE NOT NULL,
   created_at timestamp DEFAULT now()
 );
@@ -50,25 +53,32 @@ CREATE TABLE users (
 
 ---
 
-## 2. accounts
+## 2. account_types（口座種別マスタ）
 
-お金の「場所」。銀行・クレカ・現金などを区別する。
+タグのように選択する用。初期データ: cash, bank, credit。
 
-| type   | 例             |
-|--------|----------------|
-| `cash` | 現金           |
-| `bank` | 三井住友銀行   |
-| `credit` | 楽天カード   |
+```sql
+CREATE TABLE account_types (
+  id serial PRIMARY KEY,
+  name text UNIQUE NOT NULL
+);
+```
+
+---
+
+## 3. accounts
+
+お金の「場所」。`account_type_id` で種別（account_types）を参照する。
 
 ```sql
 CREATE TABLE accounts (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL,
+  id serial PRIMARY KEY,
+  user_id integer NOT NULL,
+  account_type_id integer NOT NULL,
   name text NOT NULL,
-  type text NOT NULL,
   created_at timestamp DEFAULT now(),
-
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (account_type_id) REFERENCES account_types(id)
 );
 
 CREATE INDEX idx_accounts_user ON accounts(user_id);
@@ -76,24 +86,32 @@ CREATE INDEX idx_accounts_user ON accounts(user_id);
 
 ---
 
-## 3. categories
+## 4. category_types（カテゴリ種別マスタ）
 
-支出・収入のカテゴリ。ユーザーごとに持つ（将来は共通マスタも検討可能）。
+タグのように選択する用。初期データ: income, expense。
 
-| type     | 例                          |
-|----------|-----------------------------|
-| `income` | salary, side_job            |
-| `expense` | rent, food, subscription   |
+```sql
+CREATE TABLE category_types (
+  id serial PRIMARY KEY,
+  name text UNIQUE NOT NULL
+);
+```
+
+---
+
+## 5. categories
+
+支出・収入のカテゴリ。`category_type_id` で種別（category_types）を参照する。
 
 ```sql
 CREATE TABLE categories (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL,
+  id serial PRIMARY KEY,
+  user_id integer NOT NULL,
+  category_type_id integer NOT NULL,
   name text NOT NULL,
-  type text NOT NULL,
   created_at timestamp DEFAULT now(),
-
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (category_type_id) REFERENCES category_types(id)
 );
 
 CREATE INDEX idx_categories_user ON categories(user_id);
@@ -101,16 +119,16 @@ CREATE INDEX idx_categories_user ON categories(user_id);
 
 ---
 
-## 4. transactions（最重要）
+## 6. transactions（最重要）
 
 すべての金銭移動を記録する。**Ledger の中心**。
 
 ```sql
 CREATE TABLE transactions (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL,
-  account_id uuid NOT NULL,
-  category_id uuid,
+  id serial PRIMARY KEY,
+  user_id integer NOT NULL,
+  account_id integer NOT NULL,
+  category_id integer,
   amount integer NOT NULL,
   memo text,
   occurred_at timestamp NOT NULL,
@@ -142,14 +160,14 @@ SELECT SUM(amount) FROM transactions WHERE user_id = $1;
 
 ---
 
-## 5. goals
+## 7. goals
 
 資金目標（引越し・購入・返済など）。
 
 ```sql
 CREATE TABLE goals (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL,
+  id serial PRIMARY KEY,
+  user_id integer NOT NULL,
   name text NOT NULL,
   target_amount integer NOT NULL,
   deadline date,
@@ -165,7 +183,7 @@ CREATE INDEX idx_goals_user ON goals(user_id);
 
 ---
 
-## 6. 重要インデックス
+## 8. 重要インデックス
 
 家計アプリは **期間クエリ** が頻出するため、以下を必須とする。
 
@@ -181,7 +199,7 @@ ON transactions(category_id);
 
 ---
 
-## 7. 代表的なクエリ
+## 9. 代表的なクエリ
 
 ### 月次キャッシュフロー
 
@@ -223,7 +241,7 @@ FROM (
 
 ---
 
-## 8. CashPilot 固有の機能（シミュレーション）
+## 10. CashPilot 固有の機能（シミュレーション）
 
 **副業シミュレーション** などは、入力（`hourly_rate`, `hours`）に基づき  
 `side_income = hourly_rate × hours` を **ランタイム計算** で行う。  
@@ -231,19 +249,21 @@ DB にシミュレーション結果を保存しない形でよい（保存す�
 
 ---
 
-## 9. 初期マイグレーション順序
+## 11. 初期マイグレーション順序
 
 依存関係に従い、以下の順で実行する。
 
 1. `001_users`
-2. `002_accounts`
-3. `003_categories`
-4. `004_transactions`
-5. `005_goals`
+2. `002_account_types`
+3. `003_accounts`
+4. `004_category_types`
+5. `005_categories`
+6. `006_transactions`
+7. `007_goals`
 
 ---
 
-## 10. この設計のメリット
+## 12. この設計のメリット
 
 - 家計管理
 - 資産管理（口座別残高）
@@ -255,7 +275,7 @@ DB にシミュレーション結果を保存しない形でよい（保存す�
 
 ---
 
-## 11. 将来追加テーブル（v2 以降）
+## 13. 将来追加テーブル（v2 以降）
 
 | テーブル | 用途 |
 |----------|------|
@@ -269,7 +289,7 @@ DB にシミュレーション結果を保存しない形でよい（保存す�
 
 ---
 
-## 12. 参照
+## 14. 参照
 
 - バックエンド API 設計・ドメインロジック: [backend.md](./backend.md)
 - 全体方針: [README.md](./README.md)

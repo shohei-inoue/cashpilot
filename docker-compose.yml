@@ -16,6 +16,16 @@ services:
       timeout: 5s
       retries: 5
 
+  migrate:
+    image: migrate/migrate
+    container_name: cashpilot-migrate
+    command: ["-path", "/migrations", "-database", "postgres://${POSTGRES_USER:-cashpilot}:${POSTGRES_PASSWORD:-cashpilot}@db:5432/${POSTGRES_DB:-cashpilot}?sslmode=disable", "up"]
+    volumes:
+      - ./backend/db/migrations:/migrations
+    depends_on:
+      db:
+        condition: service_healthy
+
   backend:
     build:
       context: ./backend
@@ -26,8 +36,8 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-cashpilot}:${POSTGRES_PASSWORD:-cashpilot}@db:5432/${POSTGRES_DB:-cashpilot}?sslmode=disable
     depends_on:
-      db:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   frontend:
     build:

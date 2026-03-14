@@ -40,6 +40,8 @@ CashPilotは、個人のキャッシュフローシミュレーターと収支�
 cashpilot
 ├ frontend
 ├ backend
+│   └ db/
+│       └ migrations/  # DBマイグレーション（001〜007。account_types, category_types 含む）
 ├ docs
 ├ docker-compose.yml
 ├ start.sh

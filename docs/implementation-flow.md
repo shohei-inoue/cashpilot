@@ -43,17 +43,19 @@ Phase 6: 結合・デプロイ
 
 | 順番 | マイグレーション | 内容 |
 |------|-----------------|------|
-| 1 | `001_users` | `users` テーブル（id = auth.users.id, email）。Supabase の場合は `auth.users` と連携する形でアプリ用 `users` を用意するか、RLS で auth.users を直接参照するか方針を決める。 |
-| 2 | `002_accounts` | `accounts`（user_id, name, type）。 |
-| 3 | `003_categories` | `categories`（user_id, name, type）。 |
-| 4 | `004_transactions` | `transactions`（user_id, account_id, category_id, amount, memo, occurred_at）。インデックス `(user_id, occurred_at)`, `(category_id)`。 |
-| 5 | `005_goals` | `goals`（user_id, name, target_amount, deadline）。 |
+| 1 | `001_users` | `users`（id: serial PK、uuid: Supabase Auth 連携用、email）。 |
+| 2 | `002_account_types` | 口座種別マスタ（cash, bank, credit）。タグ選択用。 |
+| 3 | `003_accounts` | `accounts`（user_id, account_type_id, name）。 |
+| 4 | `004_category_types` | カテゴリ種別マスタ（income, expense）。タグ選択用。 |
+| 5 | `005_categories` | `categories`（user_id, category_type_id, name）。 |
+| 6 | `006_transactions` | `transactions`（user_id, account_id, category_id, amount, memo, occurred_at）。 |
+| 7 | `007_goals` | `goals`（user_id, name, target_amount, deadline）。 |
 
 **補足**
 - マイグレーションツール: Supabase CLI / golang-migrate / Goose など、プロジェクトで 1 つに統一。
 - 初回利用時: サインアップ時に `users` に 1 件挿入するか、Auth の webhook で作成するか決める。
 
-**成果物**: 上記 5 本のマイグレーションが適用されたスキーマ。必要ならシード（デフォルトカテゴリなど）を追加。
+**成果物**: 上記 7 本のマイグレーションが適用されたスキーマ。必要ならシード（デフォルトカテゴリなど）を追加。
 
 ---
 

@@ -30,7 +30,7 @@ DB 設計は **Ledger 型 + User ownership**。正本は [database.md](./databas
 
 | エンティティ | 役割 | 備考 |
 |-------------|------|------|
-| **users** | 認証主体。Supabase `auth.users.id` と 1:1。 | 全データは `user_id` でスコープ。 |
+| **users** | 認証主体。`id` (serial) を PK、`uuid` を Supabase Auth 連携用。 | 全データは `user_id` (users.id) でスコープ。 |
 | **accounts** | お金の「場所」（銀行・クレカ・現金）。 | `type`: cash / bank / credit。 |
 | **categories** | 収入・支出のカテゴリ。 | `type`: income / expense。ユーザーごと。 |
 | **transactions** | 1件の金銭移動。Ledger の中心。 | `amount`: 収入は正・支出は負。`occurred_at` で時系列。 |
