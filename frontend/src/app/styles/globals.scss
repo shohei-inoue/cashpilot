@@ -1,11 +1,263 @@
+@use "./variables";
+
+/* ========================================
+   CSS 変数（design-system.md）
+   ======================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  // カラーパレット
+  --color-white-100: #ffffff;
+  --color-white-200: #fafafa;
+  --color-white-300: #f5f5f5;
+  --color-white-400: #f0f0f0;
+  --color-white-500: #ebebeb;
+  --color-white-600: #e5e5e5;
+  --color-white-700: #d4d4d4;
+  --color-white-800: #a3a3a3;
+  --color-white-900: #737373;
+
+  --color-black-100: #f5f5f5;
+  --color-black-200: #e5e5e5;
+  --color-black-300: #d4d4d4;
+  --color-black-400: #a3a3a3;
+  --color-black-500: #737373;
+  --color-black-600: #525252;
+  --color-black-700: #404040;
+  --color-black-800: #262626;
+  --color-black-900: #000000;
+
+  --color-gray-100: #f9fafb;
+  --color-gray-200: #f3f4f6;
+  --color-gray-300: #e5e7eb;
+  --color-gray-400: #d1d5db;
+  --color-gray-500: #9ca3af;
+  --color-gray-600: #6b7280;
+  --color-gray-700: #4b5563;
+  --color-gray-800: #374151;
+  --color-gray-900: #111827;
+
+  --color-blue-100: #dbeafe;
+  --color-blue-200: #bfdbfe;
+  --color-blue-300: #93c5fd;
+  --color-blue-400: #60a5fa;
+  --color-blue-500: #3b82f6;
+  --color-blue-600: #2563eb;
+  --color-blue-700: #1d4ed8;
+  --color-blue-800: #1e40af;
+  --color-blue-900: #1e3a8a;
+
+  --color-green-100: #dcfce7;
+  --color-green-200: #bbf7d0;
+  --color-green-300: #86efac;
+  --color-green-400: #4ade80;
+  --color-green-500: #22c55e;
+  --color-green-600: #16a34a;
+  --color-green-700: #15803d;
+  --color-green-800: #166534;
+  --color-green-900: #14532d;
+
+  --color-red-100: #fee2e2;
+  --color-red-200: #fecaca;
+  --color-red-300: #fca5a5;
+  --color-red-400: #f87171;
+  --color-red-500: #ef4444;
+  --color-red-600: #dc2626;
+  --color-red-700: #b91c1c;
+  --color-red-800: #991b1b;
+  --color-red-900: #7f1d1d;
+
+  // セマンティック（ライト）
+  --color-bg: var(--color-white-100);
+  --color-bg-subtle: var(--color-white-200);
+  --color-text: var(--color-black-900);
+  --color-text-muted: var(--color-gray-600);
+  --color-border: var(--color-gray-300);
+  --color-primary: var(--color-blue-600);
+  --color-primary-hover: var(--color-blue-700);
+  --color-secondary: var(--color-gray-600);
+  --color-secondary-hover: var(--color-gray-700);
+  --color-income: var(--color-green-600);
+  --color-expense: var(--color-red-600);
+  --color-success: var(--color-green-600);
+  --color-error: var(--color-red-700);
+
+  // タイポグラフィ
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, monospace;
+
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  // スペーシング
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  // シャドウ
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --color-bg: var(--color-black-800);
+    --color-bg-subtle: var(--color-black-700);
+    --color-text: var(--color-white-100);
+    --color-text-muted: var(--color-gray-400);
+    --color-border: var(--color-gray-700);
+    --color-secondary: var(--color-gray-500);
+    --color-secondary-hover: var(--color-gray-400);
   }
+}
+
+/* ========================================
+   Reset & Base
+   ======================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  line-height: 1.5;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* ========================================
+   Typography
+   ======================================== */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.25;
+}
+
+/* ========================================
+   Form Base
+   ======================================== */
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="datetime-local"],
+select,
+textarea {
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgb(37 99 235 / 0.2);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* ========================================
+   Utility Classes（必要に応じて拡張）
+   ======================================== */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
