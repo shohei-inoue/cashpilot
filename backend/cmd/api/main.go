@@ -1,7 +1,11 @@
 package main
 
 import (
-	"backend/internal/controller"
+	"context"
+	"log"
+
+	"backend/db"
+	"backend/internal/config"
 	"backend/internal/middleware"
 	"backend/internal/router"
 
@@ -9,6 +13,15 @@ import (
 )
 
 func main() {
+	cfg := config.Load()
+
+	ctx := context.Background()
+	pool, err := db.NewPool(ctx, cfg.DatabaseURL)
+	if err != nil {
+		log.Fatalf("failed to connect to database: %v", err)
+	}
+	defer pool.Close()
+
 	r := gin.Default()
 
 	// CORS（credentials 対応のため Allow-Origin は単一オリジン）
@@ -24,8 +37,7 @@ func main() {
 
 	// /api プレフィックス
 	api := r.Group("/api")
-	hc := controller.NewHealthController()
-	router.Setup(api, hc)
+	router.Setup(api, pool)
 
 	r.Run(":8080")
 }

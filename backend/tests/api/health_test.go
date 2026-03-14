@@ -5,7 +5,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"backend/internal/controller"
 	"backend/internal/middleware"
 	"backend/internal/router"
 
@@ -18,8 +17,7 @@ func TestHealth(t *testing.T) {
 	r.Use(middleware.CORS())
 
 	api := r.Group("/api")
-	hc := controller.NewHealthController()
-	router.Setup(api, hc)
+	router.Setup(api, nil) // nil = DB 接続チェックをスキップ
 
 	req := httptest.NewRequest(http.MethodGet, "/api/health", nil)
 	rec := httptest.NewRecorder()

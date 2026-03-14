@@ -13,7 +13,7 @@ import (
 func TestHealthController_Get(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	hc := controller.NewHealthController()
+	hc := controller.NewHealthController(nil) // nil = DB 接続チェックをスキップ
 	c, _ := gin.CreateTestContext(httptest.NewRecorder())
 	c.Request = httptest.NewRequest(http.MethodGet, "/api/health", nil)
 
