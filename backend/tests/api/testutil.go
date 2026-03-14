@@ -38,5 +38,6 @@ func SetupRouterWithDB() (*gin.Engine, error) {
 	logicRouter.SetupHealth(api, pool)
 	logicRouter.SetupAuth(api, pool, jwtSecret)
 	logicRouter.SetupUser(api, pool, jwtSecret)
+	logicRouter.SetupAccount(api, pool, jwtSecret)
 	return r, nil
 }
