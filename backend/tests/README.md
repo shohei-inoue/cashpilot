@@ -30,6 +30,6 @@ go test ./tests/unit/...
 
 ## 注意（API テスト）
 
-`tests/api/auth_test.go`、`tests/api/account_test.go`、`tests/api/category_test.go`、`tests/api/transaction_test.go` は DB 接続が必要。PostgreSQL が起動している状態で実行する（例: `./start.sh` で Docker 起動後）。
+`tests/api/auth_test.go`、`tests/api/account_test.go`、`tests/api/category_test.go`、`tests/api/transaction_test.go`、`tests/api/goal_test.go` は DB 接続が必要。PostgreSQL が起動している状態で実行する（例: `./start.sh` で Docker 起動後）。
 
 DB に接続できない場合は `t.Skip` でスキップされる。

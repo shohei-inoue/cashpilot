@@ -19,4 +19,7 @@ var (
 	ErrInvalidAmount        = errors.New("amount must not be zero")
 	ErrInvalidAccountRef    = errors.New("account does not belong to user")
 	ErrInvalidCategoryRef   = errors.New("category does not belong to user")
+	ErrGoalNotFound         = errors.New("goal not found")
+	ErrInvalidGoalName      = errors.New("goal name is required")
+	ErrInvalidTargetAmount  = errors.New("target amount must be positive")
 )
