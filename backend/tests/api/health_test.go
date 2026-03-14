@@ -17,7 +17,7 @@ func TestHealth(t *testing.T) {
 	r.Use(middleware.CORS())
 
 	api := r.Group("/api")
-	router.Setup(api, nil) // nil = DB 接続チェックをスキップ
+	router.Setup(api, nil, "") // nil, "" = DB・認証スキップ（テスト用）
 
 	req := httptest.NewRequest(http.MethodGet, "/api/health", nil)
 	rec := httptest.NewRecorder()

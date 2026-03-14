@@ -19,6 +19,7 @@
 | `000005_categories` | categories テーブル |
 | `000006_transactions` | transactions テーブル + インデックス |
 | `000007_goals` | goals テーブル |
+| `000008_add_password_hash` | users に password_hash 追加（認証用） |
 
 命名規則: `{連番}_{名前}.up.sql` / `{連番}_{名前}.down.sql`
 

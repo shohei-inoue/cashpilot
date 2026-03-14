@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"backend/internal/response"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -25,16 +27,10 @@ func (h *HealthController) Get(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(c.Request.Context(), 2*time.Second)
 		defer cancel()
 		if err := h.pool.Ping(ctx); err != nil {
-			c.JSON(http.StatusServiceUnavailable, gin.H{
-				"status": "unhealthy",
-				"error":  "database unreachable",
-			})
+			response.Error(c, http.StatusServiceUnavailable, response.CodeDatabaseError, response.MsgDatabaseUnreachable)
 			return
 		}
 	}
 
-
-	c.JSON(http.StatusOK, gin.H{
-		"status": "ok",
-	})
+	response.Success(c, gin.H{response.MsgStatus: response.MsgOK})
 }

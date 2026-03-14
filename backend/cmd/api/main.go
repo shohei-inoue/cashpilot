@@ -37,7 +37,7 @@ func main() {
 
 	// /api プレフィックス
 	api := r.Group("/api")
-	router.Setup(api, pool)
+	router.Setup(api, pool, cfg.JWTSecret)
 
 	r.Run(":8080")
 }
