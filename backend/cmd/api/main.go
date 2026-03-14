@@ -42,6 +42,7 @@ func main() {
 	logicRouter.SetupUser(api, pool, cfg.JWTSecret)
 	logicRouter.SetupAccount(api, pool, cfg.JWTSecret)
 	logicRouter.SetupCategory(api, pool, cfg.JWTSecret)
+	logicRouter.SetupAnalytics(api, pool, cfg.JWTSecret)
 	logicRouter.SetupTransaction(api, pool, cfg.JWTSecret)
 	logicRouter.SetupGoal(api, pool, cfg.JWTSecret)
 
