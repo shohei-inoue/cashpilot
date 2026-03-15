@@ -1,0 +1,23 @@
+.wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background-color: var(--color-bg-subtle);
+}
+
+.title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin-bottom: var(--space-6);
+  text-align: center;
+}
+
+.footer {
+  margin-top: var(--space-6);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+}
