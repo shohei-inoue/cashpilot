@@ -4,9 +4,20 @@ CashPilot のバックエンド API。Go + Gin で構築。
 
 ## 現状
 
-開発初期段階。現時点では起動確認用の簡単なエンドポイントのみ実装済み。
+Phase 0〜3 まで実装済み。認証・CRUD・集計・シミュレーション API が利用可能。
 
-- `GET /` … JSON レスポンス（`{"message": "Hello, World!", "status": "ok"}`）
+- **ルート**: `GET /` … 疎通確認（`{"message": "CashPilot API", "status": "ok"}`）
+- **ヘルス**: `GET /api/health` … 起動・DB 接続確認
+- **認証**: `POST /api/auth/signup`, `POST /api/auth/login`, `POST /api/auth/logout`
+- **ユーザー**: `GET /api/user`（認証必須）
+- **口座**: `GET/POST/PUT/DELETE /api/accounts`（認証必須）
+- **カテゴリ**: `GET/POST/PUT/DELETE /api/categories`（認証必須）
+- **取引**: `GET/POST/PUT/DELETE /api/transactions`, `GET /api/transactions/:id`（認証必須）
+- **集計**: `GET /api/transactions/summary`, `GET /api/analytics/cashflow`（認証必須）
+- **目標**: `GET/POST/PUT/DELETE /api/goals`, `GET /api/goals/:id`（認証必須）
+- **シミュレーション**: `POST /api/simulation/run`（認証必須）
+
+詳細なリクエスト・レスポンスは [docs/backend.md](../docs/backend.md) を参照。
 
 ## 開発
 

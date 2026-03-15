@@ -8,15 +8,15 @@ golang-migrate の [migrate/migrate](https://github.com/golang-migrate/migrate) 
 
 `backend/db/migrations/` 直下に配置。
 
-| ファイル | 内容 |
-|----------|------|
-| `000001_users` | users テーブル |
-| `000002_account_types` | 口座種別マスタ（cash, bank, credit） |
-| `000003_accounts` | accounts テーブル |
+| ファイル                | 内容                                  |
+| ----------------------- | ------------------------------------- |
+| `000001_users`          | users テーブル                        |
+| `000002_account_types`  | 口座種別マスタ（cash, bank, credit）  |
+| `000003_accounts`       | accounts テーブル                     |
 | `000004_category_types` | カテゴリ種別マスタ（income, expense） |
-| `000005_categories` | categories テーブル |
-| `000006_transactions` | transactions テーブル + インデックス |
-| `000007_goals` | goals テーブル |
+| `000005_categories`     | categories テーブル                   |
+| `000006_transactions`   | transactions テーブル + インデックス  |
+| `000007_goals`          | goals テーブル                        |
 
 ---
 

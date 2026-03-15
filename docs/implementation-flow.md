@@ -4,6 +4,22 @@
 
 ---
 
+## 現状（実装状況）
+
+| フェーズ | 状態 | 備考 |
+|----------|------|------|
+| Phase 0 | 完了 | Docker Compose、`.env`、モノレポ構成 |
+| Phase 1 | 完了 | マイグレーション 001〜008（users, account_types, accounts, category_types, categories, transactions, goals, password_hash） |
+| Phase 2 | 完了 | Gin, CORS, GORM 接続, JWT 認証ミドルウェア, `GET /api/health` |
+| Phase 3 | 完了 | 認証・user・accounts・categories・transactions・goals・analytics・simulation API 一式 |
+| Phase 4 | 完了 | Next.js, 認証 UI（サインアップ・ログイン）, レイアウト（Header/Sidebar）, ナビ（Dashboard / Transactions / Simulation） |
+| Phase 5 | 未実装 | 各画面はプレースホルダーのみ。API 連携・ダッシュボード実データ・目標・設定画面が未実装 |
+| Phase 6 | 未着手 | ローカル結合確認・エラーハンドリング統一 |
+
+**次にやること（MVP 達成に向けて）**: Phase 5 のフロントエンド画面実装（ダッシュボードに集計・取引表示、取引一覧・登録、シミュレーション入力・結果表示、目標・口座・カテゴリの設定画面の追加と API 連携）。
+
+---
+
 ## 全体の流れ（概要）
 
 ```
@@ -142,10 +158,10 @@ Phase 6: 結合・デプロイ
 
 ## マイルストーン（チェックリスト）
 
-- [ ] **M1** Phase 0〜1 完了: ローカル環境構築とマイグレーション適用
-- [ ] **M2** Phase 2〜3-3 完了: 認証付きで CRUD API がすべて動く
-- [ ] **M3** Phase 3-4〜3-5 完了: 集計・シミュレーション API が動く
-- [ ] **M4** Phase 4 完了: ログイン〜ダッシュボード骨組みまで表示
+- [x] **M1** Phase 0〜1 完了: ローカル環境構築とマイグレーション適用
+- [x] **M2** Phase 2〜3-3 完了: 認証付きで CRUD API がすべて動く
+- [x] **M3** Phase 3-4〜3-5 完了: 集計・シミュレーション API が動く
+- [x] **M4** Phase 4 完了: ログイン〜ダッシュボード骨組みまで表示
 - [ ] **M5** Phase 5 完了: 全画面がつながり、一通り操作できる
 - [ ] **M6** Phase 6 完了: ローカル結合確認が完了（本番デプロイは将来検討）
 
