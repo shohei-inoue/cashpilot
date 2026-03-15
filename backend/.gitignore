@@ -1,6 +1,7 @@
 # ビルド成果物
 /main
 /backend
+/tmp
 *.exe
 *.exe~
 *.dll

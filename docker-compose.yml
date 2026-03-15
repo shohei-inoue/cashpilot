@@ -29,13 +29,18 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile
+      target: dev
     container_name: cashpilot-backend
     ports:
       - "8080:8080"
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-cashpilot}:${POSTGRES_PASSWORD:-cashpilot}@db:5432/${POSTGRES_DB:-cashpilot}?sslmode=disable
       JWT_SECRET: ${JWT_SECRET:-}
+    volumes:
+      - ./backend:/app
+      - go_build_cache:/go/pkg/mod
+    command: ["air", "-c", "docker/.air.toml"]
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -61,3 +66,4 @@ services:
 volumes:
   postgres_data:
   frontend_node_modules:
+  go_build_cache:
