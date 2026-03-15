@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"backend/internal/apperrors"
@@ -60,7 +61,7 @@ func (a *AuthController) Signup(c *gin.Context) {
 		case errors.Is(err, apperrors.ErrEmailExists):
 			response.Error(c, http.StatusConflict, response.CodeConflict, response.MsgEmailAlreadyExists)
 		default:
-			response.Error(c, http.StatusInternalServerError, response.CodeInternalError, response.MsgFailedToCreateUser)
+			response.Error(c, http.StatusInternalServerError, response.CodeInternalError, response.MsgInternalError)
 		}
 		return
 	}
@@ -83,7 +84,8 @@ func (a *AuthController) Login(c *gin.Context) {
 		case errors.Is(err, apperrors.ErrInvalidCredentials):
 			response.Error(c, http.StatusUnauthorized, response.CodeUnauthorized, response.MsgInvalidCredentials)
 		default:
-			response.Error(c, http.StatusInternalServerError, response.CodeDatabaseError, response.MsgDatabaseError)
+			slog.Error("login failed", "error", err)
+			response.Error(c, http.StatusInternalServerError, response.CodeInternalError, response.MsgInternalError)
 		}
 		return
 	}

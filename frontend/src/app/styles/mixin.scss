@@ -1,0 +1,21 @@
+@use "sass:map";
+@use "./variables" as v;
+
+@mixin mq($size, $max: false) {
+  $value: map.get(v.$breakpoints, $size);
+
+  @if $value == null {
+    @error "Unknown breakpoint: #{$size}. Use: #{map.keys(v.$breakpoints)}";
+  }
+
+  @if $max {
+    $max-value: $value - 1px;
+    @media (max-width: $max-value) {
+      @content;
+    }
+  } @else {
+    @media (min-width: $value) {
+      @content;
+    }
+  }
+}
