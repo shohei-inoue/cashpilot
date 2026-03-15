@@ -10,9 +10,17 @@ CashPilot のバックエンド API。Go + Gin で構築。
 
 ## 開発
 
+### ローカルで実行
+
 ```bash
-go run main.go
+go run ./cmd/api
 ```
+
+### Docker でホットリロード（Air）
+
+プロジェクトルートで `./start.sh` または `docker compose up --build` を実行すると、バックエンドは Air で起動し、Go ファイルの編集で自動ビルド・再起動されます。
+
+Docker 関連の設定は `docker/` にまとまっています（`Dockerfile`, `.air.toml`）。
 
 サーバー起動後、[http://localhost:8080](http://localhost:8080) にアクセスして動作を確認できる。
 
