@@ -5,8 +5,7 @@ import (
 
 	"backend/internal/logic/domain"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"gorm.io/gorm"
 )
 
 // AccountRepository は口座の永続化インターフェース
@@ -21,103 +20,94 @@ type AccountRepository interface {
 
 var _ AccountRepository = (*AccountRepositoryImpl)(nil)
 
-// AccountRepositoryImpl は PostgreSQL 用の AccountRepository 実装
+// AccountRepositoryImpl は GORM 用の AccountRepository 実装
 type AccountRepositoryImpl struct {
-	pool *pgxpool.Pool
+	db *gorm.DB
 }
 
 // NewAccountRepository は AccountRepositoryImpl を生成する
-func NewAccountRepository(pool *pgxpool.Pool) *AccountRepositoryImpl {
-	return &AccountRepositoryImpl{pool: pool}
+func NewAccountRepository(db *gorm.DB) *AccountRepositoryImpl {
+	return &AccountRepositoryImpl{db: db}
+}
+
+func setAccountTypeName(a *domain.Account) {
+	if a.AccountType != nil {
+		a.Type = a.AccountType.Name
+	}
 }
 
 // GetAccountTypeIDByName は account_types の name から id を取得する
 func (r *AccountRepositoryImpl) GetAccountTypeIDByName(ctx context.Context, name string) (int, error) {
-	var id int
-	err := r.pool.QueryRow(ctx,
-		`SELECT id FROM account_types WHERE name = $1`,
-		name,
-	).Scan(&id)
+	var at domain.AccountType
+	err := r.db.WithContext(ctx).Where("name = ?", name).First(&at).Error
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if err == gorm.ErrRecordNotFound {
 			return 0, nil
 		}
 		return 0, err
 	}
-	return id, nil
+	return at.ID, nil
 }
 
 // ListByUserID は userID に紐づく口座一覧を取得する
 func (r *AccountRepositoryImpl) ListByUserID(ctx context.Context, userID int) ([]*domain.Account, error) {
-	rows, err := r.pool.Query(ctx,
-		`SELECT a.id, a.user_id, a.account_type_id, at.name, a.name, a.created_at::text, a.updated_at::text
-		 FROM accounts a
-		 JOIN account_types at ON a.account_type_id = at.id
-		 WHERE a.user_id = $1
-		 ORDER BY a.id`,
-		userID,
-	)
+	var list []*domain.Account
+	err := r.db.WithContext(ctx).
+		Preload("AccountType").
+		Where("user_id = ?", userID).
+		Order("id").
+		Find(&list).Error
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	var accounts []*domain.Account
-	for rows.Next() {
-		var a domain.Account
-		if err := rows.Scan(&a.ID, &a.UserID, &a.AccountTypeID, &a.AccountType, &a.Name, &a.CreatedAt, &a.UpdatedAt); err != nil {
-			return nil, err
-		}
-		accounts = append(accounts, &a)
+	for _, a := range list {
+		setAccountTypeName(a)
 	}
-	return accounts, rows.Err()
+	return list, nil
 }
 
 // FindByIDAndUserID は id と userID で口座を取得する
 func (r *AccountRepositoryImpl) FindByIDAndUserID(ctx context.Context, id, userID int) (*domain.Account, error) {
 	var a domain.Account
-	err := r.pool.QueryRow(ctx,
-		`SELECT a.id, a.user_id, a.account_type_id, at.name, a.name, a.created_at::text, a.updated_at::text
-		 FROM accounts a
-		 JOIN account_types at ON a.account_type_id = at.id
-		 WHERE a.id = $1 AND a.user_id = $2`,
-		id, userID,
-	).Scan(&a.ID, &a.UserID, &a.AccountTypeID, &a.AccountType, &a.Name, &a.CreatedAt, &a.UpdatedAt)
+	err := r.db.WithContext(ctx).
+		Preload("AccountType").
+		Where("id = ? AND user_id = ?", id, userID).
+		First(&a).Error
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if err == gorm.ErrRecordNotFound {
 			return nil, nil
 		}
 		return nil, err
 	}
+	setAccountTypeName(&a)
 	return &a, nil
 }
 
 // Create は新規口座を作成する
 func (r *AccountRepositoryImpl) Create(ctx context.Context, userID, accountTypeID int, name string) (*domain.Account, error) {
-	var id int
-	err := r.pool.QueryRow(ctx,
-		`INSERT INTO accounts (user_id, account_type_id, name)
-		 VALUES ($1, $2, $3)
-		 RETURNING id`,
-		userID, accountTypeID, name,
-	).Scan(&id)
-	if err != nil {
+	a := domain.Account{
+		UserID:        userID,
+		AccountTypeID: accountTypeID,
+		Name:          name,
+	}
+	if err := r.db.WithContext(ctx).Create(&a).Error; err != nil {
 		return nil, err
 	}
-	return r.FindByIDAndUserID(ctx, id, userID)
+	return r.FindByIDAndUserID(ctx, a.ID, userID)
 }
 
 // Update は口座を更新する
 func (r *AccountRepositoryImpl) Update(ctx context.Context, id, userID, accountTypeID int, name string) (*domain.Account, error) {
-	result, err := r.pool.Exec(ctx,
-		`UPDATE accounts SET account_type_id = $1, name = $2, updated_at = now()
-		 WHERE id = $3 AND user_id = $4`,
-		accountTypeID, name, id, userID,
-	)
-	if err != nil {
-		return nil, err
+	result := r.db.WithContext(ctx).Model(&domain.Account{}).
+		Where("id = ? AND user_id = ?", id, userID).
+		Updates(map[string]interface{}{
+			"account_type_id": accountTypeID,
+			"name":            name,
+		})
+	if result.Error != nil {
+		return nil, result.Error
 	}
-	if result.RowsAffected() == 0 {
+	if result.RowsAffected == 0 {
 		return nil, nil
 	}
 	return r.FindByIDAndUserID(ctx, id, userID)
@@ -125,15 +115,8 @@ func (r *AccountRepositoryImpl) Update(ctx context.Context, id, userID, accountT
 
 // Delete は口座を削除する
 func (r *AccountRepositoryImpl) Delete(ctx context.Context, id, userID int) error {
-	result, err := r.pool.Exec(ctx,
-		`DELETE FROM accounts WHERE id = $1 AND user_id = $2`,
-		id, userID,
-	)
-	if err != nil {
-		return err
-	}
-	if result.RowsAffected() == 0 {
-		return nil
-	}
-	return nil
+	result := r.db.WithContext(ctx).
+		Where("id = ? AND user_id = ?", id, userID).
+		Delete(&domain.Account{})
+	return result.Error
 }

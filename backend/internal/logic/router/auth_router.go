@@ -6,12 +6,12 @@ import (
 	"backend/internal/logic/usecase"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"gorm.io/gorm"
 )
 
 // SetupAuth は認証ルートを登録する
-func SetupAuth(r *gin.RouterGroup, pool *pgxpool.Pool, jwtSecret string) {
-	userRepo := repository.NewUserRepository(pool)
+func SetupAuth(r *gin.RouterGroup, db *gorm.DB, jwtSecret string) {
+	userRepo := repository.NewUserRepository(db)
 	authUsecase := usecase.NewAuthUsecase(jwtSecret, userRepo)
 	ac := controller.NewAuthController(authUsecase)
 

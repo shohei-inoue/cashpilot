@@ -1,8 +1,6 @@
 package api
 
 import (
-	"context"
-
 	"backend/db"
 	"backend/internal/config"
 	"backend/internal/middleware"
@@ -21,7 +19,7 @@ func SetupRouterWithDB() (*gin.Engine, error) {
 		jwtSecret = testJWTSecret
 	}
 
-	pool, err := db.NewPool(context.Background(), cfg.DatabaseURL)
+	gormDB, err := db.NewGormDB(cfg.DatabaseURL)
 	if err != nil {
 		return nil, err
 	}
@@ -35,14 +33,14 @@ func SetupRouterWithDB() (*gin.Engine, error) {
 	})
 
 	api := r.Group("/api")
-	logicRouter.SetupHealth(api, pool)
-	logicRouter.SetupAuth(api, pool, jwtSecret)
-	logicRouter.SetupUser(api, pool, jwtSecret)
-	logicRouter.SetupAccount(api, pool, jwtSecret)
-	logicRouter.SetupCategory(api, pool, jwtSecret)
-	logicRouter.SetupAnalytics(api, pool, jwtSecret)
-	logicRouter.SetupTransaction(api, pool, jwtSecret)
-	logicRouter.SetupGoal(api, pool, jwtSecret)
-	logicRouter.SetupSimulation(api, pool, jwtSecret)
+	logicRouter.SetupHealth(api, gormDB)
+	logicRouter.SetupAuth(api, gormDB, jwtSecret)
+	logicRouter.SetupUser(api, gormDB, jwtSecret)
+	logicRouter.SetupAccount(api, gormDB, jwtSecret)
+	logicRouter.SetupCategory(api, gormDB, jwtSecret)
+	logicRouter.SetupAnalytics(api, gormDB, jwtSecret)
+	logicRouter.SetupTransaction(api, gormDB, jwtSecret)
+	logicRouter.SetupGoal(api, gormDB, jwtSecret)
+	logicRouter.SetupSimulation(api, gormDB, jwtSecret)
 	return r, nil
 }

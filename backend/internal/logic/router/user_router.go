@@ -7,12 +7,12 @@ import (
 	"backend/internal/middleware"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"gorm.io/gorm"
 )
 
 // SetupUser はユーザールートを登録する
-func SetupUser(r *gin.RouterGroup, pool *pgxpool.Pool, jwtSecret string) {
-	userRepo := repository.NewUserRepository(pool)
+func SetupUser(r *gin.RouterGroup, db *gorm.DB, jwtSecret string) {
+	userRepo := repository.NewUserRepository(db)
 	userUsecase := usecase.NewUserUsecase(userRepo)
 	uc := controller.NewUserController(userUsecase)
 

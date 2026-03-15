@@ -7,12 +7,12 @@ import (
 	"backend/internal/middleware"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"gorm.io/gorm"
 )
 
 // SetupTransaction は取引ルートを登録する
-func SetupTransaction(r *gin.RouterGroup, pool *pgxpool.Pool, jwtSecret string) {
-	transactionRepo := repository.NewTransactionRepository(pool)
+func SetupTransaction(r *gin.RouterGroup, db *gorm.DB, jwtSecret string) {
+	transactionRepo := repository.NewTransactionRepository(db)
 	transactionUsecase := usecase.NewTransactionUsecase(transactionRepo)
 	tc := controller.NewTransactionController(transactionUsecase)
 

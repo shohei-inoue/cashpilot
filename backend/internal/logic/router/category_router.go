@@ -7,12 +7,12 @@ import (
 	"backend/internal/middleware"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"gorm.io/gorm"
 )
 
 // SetupCategory はカテゴリルートを登録する
-func SetupCategory(r *gin.RouterGroup, pool *pgxpool.Pool, jwtSecret string) {
-	categoryRepo := repository.NewCategoryRepository(pool)
+func SetupCategory(r *gin.RouterGroup, db *gorm.DB, jwtSecret string) {
+	categoryRepo := repository.NewCategoryRepository(db)
 	categoryUsecase := usecase.NewCategoryUsecase(categoryRepo)
 	cc := controller.NewCategoryController(categoryUsecase)
 

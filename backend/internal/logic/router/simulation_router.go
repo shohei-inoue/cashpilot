@@ -7,13 +7,13 @@ import (
 	"backend/internal/middleware"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"gorm.io/gorm"
 )
 
 // SetupSimulation はシミュレーションルートを登録する
-func SetupSimulation(r *gin.RouterGroup, pool *pgxpool.Pool, jwtSecret string) {
-	analyticsRepo := repository.NewAnalyticsRepository(pool)
-	goalRepo := repository.NewGoalRepository(pool)
+func SetupSimulation(r *gin.RouterGroup, db *gorm.DB, jwtSecret string) {
+	analyticsRepo := repository.NewAnalyticsRepository(db)
+	goalRepo := repository.NewGoalRepository(db)
 	simulationUsecase := usecase.NewSimulationUsecase(analyticsRepo, goalRepo)
 	sc := controller.NewSimulationController(simulationUsecase)
 
