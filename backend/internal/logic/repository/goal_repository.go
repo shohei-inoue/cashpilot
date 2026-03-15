@@ -5,8 +5,7 @@ import (
 
 	"backend/internal/logic/domain"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"gorm.io/gorm"
 )
 
 // GoalRepository は目標の永続化インターフェース
@@ -20,49 +19,37 @@ type GoalRepository interface {
 
 var _ GoalRepository = (*GoalRepositoryImpl)(nil)
 
-// GoalRepositoryImpl は PostgreSQL 用の GoalRepository 実装
+// GoalRepositoryImpl は GORM 用の GoalRepository 実装
 type GoalRepositoryImpl struct {
-	pool *pgxpool.Pool
+	db *gorm.DB
 }
 
 // NewGoalRepository は GoalRepositoryImpl を生成する
-func NewGoalRepository(pool *pgxpool.Pool) *GoalRepositoryImpl {
-	return &GoalRepositoryImpl{pool: pool}
+func NewGoalRepository(db *gorm.DB) *GoalRepositoryImpl {
+	return &GoalRepositoryImpl{db: db}
 }
 
 // ListByUserID は userID に紐づく目標一覧を取得する
 func (r *GoalRepositoryImpl) ListByUserID(ctx context.Context, userID int) ([]*domain.Goal, error) {
-	rows, err := r.pool.Query(ctx,
-		`SELECT id, user_id, name, target_amount, deadline::text, created_at::text, updated_at::text
-		 FROM goals WHERE user_id = $1 ORDER BY id`,
-		userID,
-	)
+	var list []*domain.Goal
+	err := r.db.WithContext(ctx).
+		Where("user_id = ?", userID).
+		Order("id").
+		Find(&list).Error
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	var goals []*domain.Goal
-	for rows.Next() {
-		var g domain.Goal
-		if err := rows.Scan(&g.ID, &g.UserID, &g.Name, &g.TargetAmount, &g.Deadline, &g.CreatedAt, &g.UpdatedAt); err != nil {
-			return nil, err
-		}
-		goals = append(goals, &g)
-	}
-	return goals, rows.Err()
+	return list, nil
 }
 
 // FindByIDAndUserID は id と userID で目標を取得する
 func (r *GoalRepositoryImpl) FindByIDAndUserID(ctx context.Context, id, userID int) (*domain.Goal, error) {
 	var g domain.Goal
-	err := r.pool.QueryRow(ctx,
-		`SELECT id, user_id, name, target_amount, deadline::text, created_at::text, updated_at::text
-		 FROM goals WHERE id = $1 AND user_id = $2`,
-		id, userID,
-	).Scan(&g.ID, &g.UserID, &g.Name, &g.TargetAmount, &g.Deadline, &g.CreatedAt, &g.UpdatedAt)
+	err := r.db.WithContext(ctx).
+		Where("id = ? AND user_id = ?", id, userID).
+		First(&g).Error
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if err == gorm.ErrRecordNotFound {
 			return nil, nil
 		}
 		return nil, err
@@ -72,30 +59,32 @@ func (r *GoalRepositoryImpl) FindByIDAndUserID(ctx context.Context, id, userID i
 
 // Create は新規目標を作成する
 func (r *GoalRepositoryImpl) Create(ctx context.Context, userID int, name string, targetAmount int, deadline *string) (*domain.Goal, error) {
-	var id int
-	err := r.pool.QueryRow(ctx,
-		`INSERT INTO goals (user_id, name, target_amount, deadline)
-		 VALUES ($1, $2, $3, $4)
-		 RETURNING id`,
-		userID, name, targetAmount, deadline,
-	).Scan(&id)
-	if err != nil {
+	g := domain.Goal{
+		UserID:       userID,
+		Name:         name,
+		TargetAmount: targetAmount,
+		Deadline:     deadline,
+	}
+	if err := r.db.WithContext(ctx).Create(&g).Error; err != nil {
 		return nil, err
 	}
-	return r.FindByIDAndUserID(ctx, id, userID)
+	return r.FindByIDAndUserID(ctx, g.ID, userID)
 }
 
 // Update は目標を更新する
 func (r *GoalRepositoryImpl) Update(ctx context.Context, id, userID int, name string, targetAmount int, deadline *string) (*domain.Goal, error) {
-	result, err := r.pool.Exec(ctx,
-		`UPDATE goals SET name = $1, target_amount = $2, deadline = $3, updated_at = now()
-		 WHERE id = $4 AND user_id = $5`,
-		name, targetAmount, deadline, id, userID,
-	)
-	if err != nil {
-		return nil, err
+	updates := map[string]interface{}{
+		"name":          name,
+		"target_amount": targetAmount,
+		"deadline":      deadline,
 	}
-	if result.RowsAffected() == 0 {
+	result := r.db.WithContext(ctx).Model(&domain.Goal{}).
+		Where("id = ? AND user_id = ?", id, userID).
+		Updates(updates)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	if result.RowsAffected == 0 {
 		return nil, nil
 	}
 	return r.FindByIDAndUserID(ctx, id, userID)
@@ -103,15 +92,8 @@ func (r *GoalRepositoryImpl) Update(ctx context.Context, id, userID int, name st
 
 // Delete は目標を削除する
 func (r *GoalRepositoryImpl) Delete(ctx context.Context, id, userID int) error {
-	result, err := r.pool.Exec(ctx,
-		`DELETE FROM goals WHERE id = $1 AND user_id = $2`,
-		id, userID,
-	)
-	if err != nil {
-		return err
-	}
-	if result.RowsAffected() == 0 {
-		return nil
-	}
-	return nil
+	result := r.db.WithContext(ctx).
+		Where("id = ? AND user_id = ?", id, userID).
+		Delete(&domain.Goal{})
+	return result.Error
 }

@@ -7,12 +7,12 @@ import (
 	"backend/internal/middleware"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"gorm.io/gorm"
 )
 
 // SetupGoal は目標ルートを登録する
-func SetupGoal(r *gin.RouterGroup, pool *pgxpool.Pool, jwtSecret string) {
-	goalRepo := repository.NewGoalRepository(pool)
+func SetupGoal(r *gin.RouterGroup, db *gorm.DB, jwtSecret string) {
+	goalRepo := repository.NewGoalRepository(db)
 	goalUsecase := usecase.NewGoalUsecase(goalRepo)
 	gc := controller.NewGoalController(goalUsecase)
 

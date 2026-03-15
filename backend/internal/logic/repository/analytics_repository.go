@@ -7,7 +7,7 @@ import (
 
 	"backend/internal/logic/domain"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	"gorm.io/gorm"
 )
 
 // CashflowGroupBy はキャッシュフローの集計単位
@@ -29,57 +29,40 @@ type AnalyticsRepository interface {
 
 var _ AnalyticsRepository = (*AnalyticsRepositoryImpl)(nil)
 
-// AnalyticsRepositoryImpl は PostgreSQL 用の AnalyticsRepository 実装
+// AnalyticsRepositoryImpl は GORM 用の AnalyticsRepository 実装
 type AnalyticsRepositoryImpl struct {
-	pool *pgxpool.Pool
+	db *gorm.DB
 }
 
 // NewAnalyticsRepository は AnalyticsRepositoryImpl を生成する
-func NewAnalyticsRepository(pool *pgxpool.Pool) *AnalyticsRepositoryImpl {
-	return &AnalyticsRepositoryImpl{pool: pool}
+func NewAnalyticsRepository(db *gorm.DB) *AnalyticsRepositoryImpl {
+	return &AnalyticsRepositoryImpl{db: db}
+}
+
+func (r *AnalyticsRepositoryImpl) summaryWhere(db *gorm.DB, userID int, from, to *time.Time, accountID, categoryID *int) *gorm.DB {
+	db = db.Where("user_id = ?", userID)
+	if from != nil {
+		db = db.Where("occurred_at >= ?", from)
+	}
+	if to != nil {
+		db = db.Where("occurred_at <= ?", to)
+	}
+	if accountID != nil {
+		db = db.Where("account_id = ?", *accountID)
+	}
+	if categoryID != nil {
+		db = db.Where("category_id = ?", *categoryID)
+	}
+	return db
 }
 
 // GetSummary は期間内の取引サマリーを取得する
 func (r *AnalyticsRepositoryImpl) GetSummary(ctx context.Context, userID int, from, to *time.Time, accountID, categoryID *int) (*domain.TransactionSummary, error) {
-	query := `SELECT
-		COALESCE(SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END), 0) AS total_income,
-		COALESCE(SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END), 0) AS total_expense,
-		COALESCE(SUM(amount), 0) AS net_cashflow,
-		COUNT(*)::int AS transaction_count
-		FROM transactions
-		WHERE user_id = $1`
-	args := []interface{}{userID}
-	argIdx := 2
-
-	if from != nil {
-		query += fmt.Sprintf(` AND occurred_at >= $%d`, argIdx)
-		args = append(args, from)
-		argIdx++
-	}
-	if to != nil {
-		query += fmt.Sprintf(` AND occurred_at <= $%d`, argIdx)
-		args = append(args, to)
-		argIdx++
-	}
-	if accountID != nil {
-		query += fmt.Sprintf(` AND account_id = $%d`, argIdx)
-		args = append(args, *accountID)
-		argIdx++
-	}
-	if categoryID != nil {
-		query += fmt.Sprintf(` AND category_id = $%d`, argIdx)
-		args = append(args, *categoryID)
-		argIdx++
-	}
-
 	var s domain.TransactionSummary
-	err := r.pool.QueryRow(ctx, query, args...).Scan(
-		&s.TotalIncome,
-		&s.TotalExpense,
-		&s.NetCashflow,
-		&s.TransactionCount,
-	)
-	if err != nil {
+	q := r.db.WithContext(ctx).Table("transactions").
+		Select("COALESCE(SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END), 0) AS total_income, COALESCE(SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END), 0) AS total_expense, COALESCE(SUM(amount), 0) AS net_cashflow, COUNT(*)::int AS transaction_count")
+	q = r.summaryWhere(q, userID, from, to, accountID, categoryID)
+	if err := q.Scan(&s).Error; err != nil {
 		return nil, err
 	}
 	return &s, nil
@@ -91,119 +74,60 @@ func (r *AnalyticsRepositoryImpl) GetCashflow(ctx context.Context, userID int, g
 		return r.getCashflowAll(ctx, userID, from, to, accountID, categoryID)
 	}
 
-	var periodExpr, orderExpr string
+	var periodExpr string
 	switch groupBy {
 	case CashflowGroupByDaily:
 		periodExpr = `TO_CHAR(occurred_at::date, 'YYYY-MM-DD')`
-		orderExpr = periodExpr
 	case CashflowGroupByWeekly:
 		periodExpr = `TO_CHAR(date_trunc('week', occurred_at)::date, 'YYYY-MM-DD')`
-		orderExpr = periodExpr
 	case CashflowGroupByMonthly:
 		periodExpr = `TO_CHAR(occurred_at, 'YYYY-MM')`
-		orderExpr = periodExpr
 	case CashflowGroupByYearly:
 		periodExpr = `TO_CHAR(occurred_at, 'YYYY')`
-		orderExpr = periodExpr
 	default:
 		periodExpr = `TO_CHAR(occurred_at, 'YYYY-MM')`
-		orderExpr = periodExpr
 	}
 
-	query := fmt.Sprintf(`SELECT
-		%s AS period,
+	query := fmt.Sprintf(`SELECT %s AS period,
 		COALESCE(SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END), 0)::int AS total_income,
 		COALESCE(SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END), 0)::int AS total_expense,
 		COALESCE(SUM(amount), 0)::int AS net_cashflow,
 		COUNT(*)::int AS transaction_count
-		FROM transactions
-		WHERE user_id = $1`, periodExpr)
+		FROM transactions WHERE user_id = ?`, periodExpr)
 	args := []interface{}{userID}
-	argIdx := 2
-
 	if from != nil {
-		query += fmt.Sprintf(` AND occurred_at >= $%d`, argIdx)
+		query += " AND occurred_at >= ?"
 		args = append(args, from)
-		argIdx++
 	}
 	if to != nil {
-		query += fmt.Sprintf(` AND occurred_at <= $%d`, argIdx)
+		query += " AND occurred_at <= ?"
 		args = append(args, to)
-		argIdx++
 	}
 	if accountID != nil {
-		query += fmt.Sprintf(` AND account_id = $%d`, argIdx)
+		query += " AND account_id = ?"
 		args = append(args, *accountID)
-		argIdx++
 	}
 	if categoryID != nil {
-		query += fmt.Sprintf(` AND category_id = $%d`, argIdx)
+		query += " AND category_id = ?"
 		args = append(args, *categoryID)
-		argIdx++
 	}
-
-	query += fmt.Sprintf(` GROUP BY %s ORDER BY %s`, periodExpr, orderExpr)
-
-	rows, err := r.pool.Query(ctx, query, args...)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
+	query += fmt.Sprintf(" GROUP BY %s ORDER BY %s", periodExpr, periodExpr)
 
 	var items []*domain.CashflowByPeriod
-	for rows.Next() {
-		var m domain.CashflowByPeriod
-		if err := rows.Scan(&m.Period, &m.TotalIncome, &m.TotalExpense, &m.NetCashflow, &m.TransactionCount); err != nil {
-			return nil, err
-		}
-		items = append(items, &m)
-	}
-	return items, rows.Err()
-}
-
-// getCashflowAll は期間全体を1件で返す
-func (r *AnalyticsRepositoryImpl) getCashflowAll(ctx context.Context, userID int, from, to *time.Time, accountID, categoryID *int) ([]*domain.CashflowByPeriod, error) {
-	query := `SELECT
-		COALESCE(SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END), 0)::int AS total_income,
-		COALESCE(SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END), 0)::int AS total_expense,
-		COALESCE(SUM(amount), 0)::int AS net_cashflow,
-		COUNT(*)::int AS transaction_count
-		FROM transactions
-		WHERE user_id = $1`
-	args := []interface{}{userID}
-	argIdx := 2
-
-	if from != nil {
-		query += fmt.Sprintf(` AND occurred_at >= $%d`, argIdx)
-		args = append(args, from)
-		argIdx++
-	}
-	if to != nil {
-		query += fmt.Sprintf(` AND occurred_at <= $%d`, argIdx)
-		args = append(args, to)
-		argIdx++
-	}
-	if accountID != nil {
-		query += fmt.Sprintf(` AND account_id = $%d`, argIdx)
-		args = append(args, *accountID)
-		argIdx++
-	}
-	if categoryID != nil {
-		query += fmt.Sprintf(` AND category_id = $%d`, argIdx)
-		args = append(args, *categoryID)
-		argIdx++
-	}
-
-	var m domain.CashflowByPeriod
-	m.Period = "all"
-	err := r.pool.QueryRow(ctx, query, args...).Scan(
-		&m.TotalIncome,
-		&m.TotalExpense,
-		&m.NetCashflow,
-		&m.TransactionCount,
-	)
-	if err != nil {
+	if err := r.db.WithContext(ctx).Raw(query, args...).Scan(&items).Error; err != nil {
 		return nil, err
 	}
+	return items, nil
+}
+
+func (r *AnalyticsRepositoryImpl) getCashflowAll(ctx context.Context, userID int, from, to *time.Time, accountID, categoryID *int) ([]*domain.CashflowByPeriod, error) {
+	var m domain.CashflowByPeriod
+	q := r.db.WithContext(ctx).Table("transactions").
+		Select("COALESCE(SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END), 0)::int AS total_income, COALESCE(SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END), 0)::int AS total_expense, COALESCE(SUM(amount), 0)::int AS net_cashflow, COUNT(*)::int AS transaction_count")
+	q = r.summaryWhere(q, userID, from, to, accountID, categoryID)
+	if err := q.Scan(&m).Error; err != nil {
+		return nil, err
+	}
+	m.Period = "all"
 	return []*domain.CashflowByPeriod{&m}, nil
 }

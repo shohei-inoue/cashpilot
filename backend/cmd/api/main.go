@@ -1,13 +1,12 @@
 package main
 
 import (
-	"context"
 	"log"
 
 	"backend/db"
 	"backend/internal/config"
-	"backend/internal/middleware"
 	logicRouter "backend/internal/logic/router"
+	"backend/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,12 +14,16 @@ import (
 func main() {
 	cfg := config.Load()
 
-	ctx := context.Background()
-	pool, err := db.NewPool(ctx, cfg.DatabaseURL)
+	gormDB, err := db.NewGormDB(cfg.DatabaseURL)
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
-	defer pool.Close()
+
+	sqlDB, err := gormDB.DB()
+	if err != nil {
+		log.Fatalf("failed to get underlying sql.DB: %v", err)
+	}
+	defer sqlDB.Close()
 
 	r := gin.Default()
 
@@ -37,15 +40,15 @@ func main() {
 
 	// /api プレフィックス
 	api := r.Group("/api")
-	logicRouter.SetupHealth(api, pool)
-	logicRouter.SetupAuth(api, pool, cfg.JWTSecret)
-	logicRouter.SetupUser(api, pool, cfg.JWTSecret)
-	logicRouter.SetupAccount(api, pool, cfg.JWTSecret)
-	logicRouter.SetupCategory(api, pool, cfg.JWTSecret)
-	logicRouter.SetupAnalytics(api, pool, cfg.JWTSecret)
-	logicRouter.SetupTransaction(api, pool, cfg.JWTSecret)
-	logicRouter.SetupGoal(api, pool, cfg.JWTSecret)
-	logicRouter.SetupSimulation(api, pool, cfg.JWTSecret)
+	logicRouter.SetupHealth(api, gormDB)
+	logicRouter.SetupAuth(api, gormDB, cfg.JWTSecret)
+	logicRouter.SetupUser(api, gormDB, cfg.JWTSecret)
+	logicRouter.SetupAccount(api, gormDB, cfg.JWTSecret)
+	logicRouter.SetupCategory(api, gormDB, cfg.JWTSecret)
+	logicRouter.SetupAnalytics(api, gormDB, cfg.JWTSecret)
+	logicRouter.SetupTransaction(api, gormDB, cfg.JWTSecret)
+	logicRouter.SetupGoal(api, gormDB, cfg.JWTSecret)
+	logicRouter.SetupSimulation(api, gormDB, cfg.JWTSecret)
 
 	r.Run(":8080")
 }

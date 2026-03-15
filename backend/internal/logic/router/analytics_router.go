@@ -7,12 +7,12 @@ import (
 	"backend/internal/middleware"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"gorm.io/gorm"
 )
 
 // SetupAnalytics は集計ルートを登録する
-func SetupAnalytics(r *gin.RouterGroup, pool *pgxpool.Pool, jwtSecret string) {
-	analyticsRepo := repository.NewAnalyticsRepository(pool)
+func SetupAnalytics(r *gin.RouterGroup, db *gorm.DB, jwtSecret string) {
+	analyticsRepo := repository.NewAnalyticsRepository(db)
 	analyticsUsecase := usecase.NewAnalyticsUsecase(analyticsRepo)
 	ac := controller.NewAnalyticsController(analyticsUsecase)
 

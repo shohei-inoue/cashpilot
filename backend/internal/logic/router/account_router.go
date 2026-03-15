@@ -7,12 +7,12 @@ import (
 	"backend/internal/middleware"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"gorm.io/gorm"
 )
 
 // SetupAccount は口座ルートを登録する
-func SetupAccount(r *gin.RouterGroup, pool *pgxpool.Pool, jwtSecret string) {
-	accountRepo := repository.NewAccountRepository(pool)
+func SetupAccount(r *gin.RouterGroup, db *gorm.DB, jwtSecret string) {
+	accountRepo := repository.NewAccountRepository(db)
 	accountUsecase := usecase.NewAccountUsecase(accountRepo)
 	ac := controller.NewAccountController(accountUsecase)
 

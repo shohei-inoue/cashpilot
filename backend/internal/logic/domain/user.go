@@ -1,13 +1,18 @@
 package domain
 
-// User は users テーブルのエンティティ（DB の全カラム）
+import "time"
+
+// User は users テーブルのエンティティ（GORM + JSON 両対応）
 type User struct {
-	ID           int    `json:"id"`
-	UUID         string `json:"uuid"`
-	Email        string `json:"email"`
-	PasswordHash string `json:"-"` // API には返さない
-	CreatedAt    string `json:"created_at,omitempty"`
+	ID           int       `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
+	UUID         string    `gorm:"column:uuid;type:uuid;default:gen_random_uuid()" json:"uuid"`
+	Email        string    `gorm:"column:email;uniqueIndex;not null" json:"email"`
+	PasswordHash string    `gorm:"column:password_hash" json:"-"`
+	CreatedAt    time.Time `gorm:"column:created_at;autoCreateTime" json:"created_at,omitempty"`
 }
+
+// TableName は GORM のテーブル名
+func (User) TableName() string { return "users" }
 
 // UserCreateRequest はユーザー作成（サインアップ）のリクエスト
 type UserCreateRequest struct {
@@ -33,6 +38,6 @@ func (u *User) ToResponse() *UserResponse {
 	return &UserResponse{
 		ID:        u.ID,
 		Email:     u.Email,
-		CreatedAt: u.CreatedAt,
+		CreatedAt: formatTime(u.CreatedAt),
 	}
 }
