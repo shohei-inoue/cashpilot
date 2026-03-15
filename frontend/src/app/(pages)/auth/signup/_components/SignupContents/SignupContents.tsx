@@ -59,11 +59,7 @@ const SignupContents = () => {
             autoComplete="new-password"
             disabled={loading}
           />
-          <Button
-            type="submit"
-            disabled={loading}
-            variant="primary"
-          >
+          <Button type="submit" disabled={loading} variant="primary">
             {loading ? '登録中...' : '登録する'}
           </Button>
         </Form>

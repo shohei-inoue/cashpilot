@@ -5,8 +5,6 @@ import type { User } from "../types/user";
 import { createAuthClient } from "../libs/client";
 import { handleResponse } from "../libs/response";
 
-export type { User };
-
 /** サインアップ */
 export async function signup(
   email: string,

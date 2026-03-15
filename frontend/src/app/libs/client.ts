@@ -3,8 +3,9 @@
 import { cookies } from "next/headers";
 import axios, { AxiosInstance, AxiosError } from "axios";
 
+/** Server Actions 用: コンテナ内では API_URL（backend サービス）を参照する */
 const getBaseUrl = () =>
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+  process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
 /**
  * Server Actions / Server Components 向けの API クライアント
