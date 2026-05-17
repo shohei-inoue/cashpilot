@@ -1,0 +1,109 @@
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.linkButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-white-100);
+  text-decoration: none;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s;
+
+  &:hover {
+    text-decoration: none;
+    background-color: var(--color-primary-hover);
+  }
+
+  &.secondary {
+    color: var(--color-secondary);
+    background-color: transparent;
+    border: 1px solid var(--color-border);
+
+    &:hover {
+      color: var(--color-secondary-hover);
+      background-color: var(--color-bg-subtle);
+    }
+  }
+}
+
+.balanceSection,
+.chartSection,
+.summarySection,
+.transactionsSection {
+  margin-bottom: var(--space-6);
+}
+
+.sectionTitle {
+  margin-bottom: var(--space-2);
+}
+
+.sectionHint {
+  margin-bottom: var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-4);
+}
+
+.summaryItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+
+  dt {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  dd {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.income {
+  color: var(--color-income);
+}
+
+.expense {
+  color: var(--color-expense);
+}
+
+.transactionsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.viewAll {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.transactionList {
+  list-style: none;
+}

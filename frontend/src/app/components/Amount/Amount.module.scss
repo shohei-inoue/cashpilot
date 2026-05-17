@@ -1,0 +1,16 @@
+.amount {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-medium);
+}
+
+.income {
+  color: var(--color-income);
+}
+
+.expense {
+  color: var(--color-expense);
+}
+
+.neutral {
+  color: var(--color-text);
+}

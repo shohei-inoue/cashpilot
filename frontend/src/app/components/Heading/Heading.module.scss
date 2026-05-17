@@ -1,0 +1,39 @@
+/* 見出しレベル別スタイル（design-system.md タイポグラフィ） */
+
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.25;
+  color: var(--color-text);
+}
+
+.h1 {
+  font-size: var(--font-size-2xl);
+}
+
+.h2 {
+  font-size: var(--font-size-lg);
+}
+
+.h3 {
+  font-size: var(--font-size-xl);
+}
+
+.h4 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+}
+
+.h5 {
+  font-size: var(--font-size-base);
+}
+
+.h6 {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}

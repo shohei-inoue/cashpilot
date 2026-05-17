@@ -9,6 +9,7 @@ import Form from '@/app/components/Form/Form';
 import Input from '@/app/components/Input/Input';
 import Button from '@/app/components/Button/Button';
 import ErrorBlock from '@/app/components/ErrorBlock/ErrorBlock';
+import Heading from '@/app/components/Heading/Heading';
 import styles from './SignupContents.module.scss';
 
 const SignupContents = () => {
@@ -36,7 +37,9 @@ const SignupContents = () => {
   return (
     <div className={styles.wrapper}>
       <Card>
-        <h1 className={styles.title}>新規登録</h1>
+        <Heading level={1} className={styles.title}>
+          新規登録
+        </Heading>
         <Form onSubmit={handleSubmit}>
           {error && <ErrorBlock>{error}</ErrorBlock>}
           <Input

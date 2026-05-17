@@ -1,12 +1,17 @@
-import MainContainer from '@/app/components/MainContainer/MainContainer';
-import MainContent from '@/app/components/MainContent/MainContent';
+import { redirect } from 'next/navigation';
+import { getDashboardData } from '@/app/actions/dashboard';
+import AppShell from '@/app/components/AppShell/AppShell';
+import DashboardContents from './_components/DashboardContents/DashboardContents';
 
-export default function Dashboard() {
+export default async function DashboardPage() {
+  const data = await getDashboardData();
+  if (!data) {
+    redirect('/auth/login');
+  }
+
   return (
-    <MainContainer>
-      <MainContent>
-        <h1>Dashboard</h1>
-      </MainContent>
-    </MainContainer>
+    <AppShell>
+      <DashboardContents data={data} />
+    </AppShell>
   );
 }
