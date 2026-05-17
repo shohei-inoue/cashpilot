@@ -1,0 +1,55 @@
+.title {
+  margin-bottom: var(--space-4);
+}
+
+.hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.flowToggle {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.flowButton {
+  flex: 1;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.flowActive {
+  color: var(--color-white-100);
+  background-color: var(--color-expense);
+  border-color: var(--color-expense);
+}
+
+.flowActiveIncome {
+  color: var(--color-white-100);
+  background-color: var(--color-income);
+  border-color: var(--color-income);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

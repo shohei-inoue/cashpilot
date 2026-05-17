@@ -52,3 +52,34 @@ export function getMonthsRange(months: number): { from: string; to: string } {
   const from = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1);
   return { from: from.toISOString(), to: now.toISOString() };
 }
+
+/** Date を datetime-local 入力用の文字列に変換 */
+export function toDatetimeLocalValue(date: Date = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+/** datetime-local の値を ISO 文字列に変換 */
+export function datetimeLocalToISO(local: string): string {
+  return new Date(local).toISOString();
+}
+
+/** ISO を date 入力用（YYYY-MM-DD）に変換 */
+export function toDateInputValue(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/** date 入力の開始日を ISO（その日 00:00:00 ローカル） */
+export function dateInputToISOStart(date: string): string {
+  const [y, m, d] = date.split('-').map(Number);
+  return new Date(y, m - 1, d, 0, 0, 0, 0).toISOString();
+}
+
+/** date 入力の終了日を ISO（その日 23:59:59 ローカル） */
+export function dateInputToISOEnd(date: string): string {
+  const [y, m, d] = date.split('-').map(Number);
+  return new Date(y, m - 1, d, 23, 59, 59, 999).toISOString();
+}

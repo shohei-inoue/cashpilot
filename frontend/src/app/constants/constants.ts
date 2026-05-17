@@ -4,25 +4,25 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
   {
     href: '/',
     icon: 'home',
-    text: 'Dashboard',
+    text: 'ダッシュボード',
     activePath: ['/'],
   },
   {
     href: '/transactions',
     icon: 'transactions',
-    text: 'Transactions',
+    text: '収支入力',
     activePath: ['/transactions'],
   },
   {
     href: '/simulation',
     icon: 'simulation',
-    text: 'Simulation',
+    text: 'シミュレーション',
     activePath: ['/simulation'],
   },
   {
     href: '/settings',
     icon: 'settings',
-    text: 'Settings',
+    text: '設定',
     activePath: ['/settings'],
   },
 ];

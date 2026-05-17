@@ -15,6 +15,7 @@ type SelectProps = {
   required?: boolean;
   disabled?: boolean;
   error?: string;
+  placeholder?: string;
 };
 
 const Select = ({
@@ -27,6 +28,7 @@ const Select = ({
   required,
   disabled,
   error,
+  placeholder,
 }: SelectProps) => {
   const selectId = id ?? name ?? 'select';
 
@@ -49,6 +51,9 @@ const Select = ({
         aria-invalid={!!error}
         aria-describedby={error ? `${selectId}-error` : undefined}
       >
+        {placeholder && (
+          <option value="">{placeholder}</option>
+        )}
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}

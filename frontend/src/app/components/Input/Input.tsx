@@ -3,7 +3,7 @@ import styles from "./Input.module.scss";
 type InputProps = {
   id?: string;
   label?: string;
-  type?: "text" | "email" | "password";
+  type?: "text" | "email" | "password" | "number" | "date" | "datetime-local";
   name?: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
