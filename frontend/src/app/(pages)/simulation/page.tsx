@@ -1,12 +1,13 @@
-import MainContainer from '@/app/components/MainContainer/MainContainer';
+import Heading from '@/app/components/Heading/Heading';
+import AppShell from '@/app/components/AppShell/AppShell';
 import MainContent from '@/app/components/MainContent/MainContent';
 
 export default function Simulation() {
   return (
-    <MainContainer>
+    <AppShell>
       <MainContent>
-        <h1>Simulation</h1>
+        <Heading level={1}>Simulation</Heading>
       </MainContent>
-    </MainContainer>
+    </AppShell>
   );
 }

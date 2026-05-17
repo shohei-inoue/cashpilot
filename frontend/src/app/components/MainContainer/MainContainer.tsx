@@ -5,7 +5,12 @@ import styles from './MainContainer.module.scss';
 import Header from '../Header/Header';
 import Sidebar from '../Sidebar/Sidebar';
 
-const MainContainer = ({ children }: { children: React.ReactNode }) => {
+type MainContainerProps = {
+  children: React.ReactNode;
+  userEmail: string;
+};
+
+const MainContainer = ({ children, userEmail }: MainContainerProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
@@ -13,6 +18,7 @@ const MainContainer = ({ children }: { children: React.ReactNode }) => {
       <Header
         isSidebarOpen={isSidebarOpen}
         onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+        userEmail={userEmail}
       />
       <div className={styles.body}>
         <Sidebar isOpen={isSidebarOpen} />

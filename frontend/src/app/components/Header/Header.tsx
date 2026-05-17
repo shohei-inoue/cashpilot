@@ -5,9 +5,10 @@ import Image from 'next/image';
 type HeaderProps = {
   isSidebarOpen: boolean;
   onToggleSidebar: () => void;
+  userEmail: string;
 };
 
-const Header = ({ isSidebarOpen, onToggleSidebar }: HeaderProps) => {
+const Header = ({ isSidebarOpen, onToggleSidebar, userEmail }: HeaderProps) => {
   return (
     <header className={styles.header}>
       <div className={styles.left}>
@@ -25,7 +26,9 @@ const Header = ({ isSidebarOpen, onToggleSidebar }: HeaderProps) => {
         </Link>
       </div>
       <div className={styles.right}>
-        <span className={styles.userName}>ユーザー名</span>
+        <span className={styles.userEmail} title={userEmail}>
+          {userEmail}
+        </span>
       </div>
     </header>
   );
