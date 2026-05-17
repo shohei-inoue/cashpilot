@@ -1,13 +1,30 @@
-import Heading from '@/app/components/Heading/Heading';
+import { redirect } from 'next/navigation';
+import { runSimulation } from '@/app/actions/simulation';
 import AppShell from '@/app/components/AppShell/AppShell';
-import MainContent from '@/app/components/MainContent/MainContent';
+import { DEFAULT_SIMULATION_INPUT } from '@/app/constants/simulation';
+import SimulationContents from './_components/SimulationContents/SimulationContents';
 
-export default function Simulation() {
+export default async function SimulationPage() {
+  let initialResult = null;
+  let initialError: string | null = null;
+
+  try {
+    initialResult = await runSimulation(DEFAULT_SIMULATION_INPUT);
+  } catch (err) {
+    if (err instanceof Error && err.message === 'Unauthorized') {
+      redirect('/auth/login');
+    }
+    initialError =
+      err instanceof Error ? err.message : 'シミュレーションの初期読み込みに失敗しました';
+  }
+
+  if (!initialResult && !initialError) {
+    redirect('/auth/login');
+  }
+
   return (
     <AppShell>
-      <MainContent>
-        <Heading level={1}>Simulation</Heading>
-      </MainContent>
+      <SimulationContents initialResult={initialResult} initialError={initialError} />
     </AppShell>
   );
 }
