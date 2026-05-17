@@ -83,3 +83,15 @@ export function dateInputToISOEnd(date: string): string {
   const [y, m, d] = date.split('-').map(Number);
   return new Date(y, m - 1, d, 23, 59, 59, 999).toISOString();
 }
+
+/** YYYY-MM-DD または ISO を表示用日付に */
+export function formatDateOnly(value: string): string {
+  const normalized = value.includes('T') ? value : `${value}T00:00:00`;
+  const d = new Date(normalized);
+  if (Number.isNaN(d.getTime())) return value;
+  return new Intl.DateTimeFormat('ja-JP', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(d);
+}

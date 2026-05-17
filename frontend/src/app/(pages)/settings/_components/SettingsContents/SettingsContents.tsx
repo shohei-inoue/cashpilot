@@ -19,6 +19,7 @@ import {
 } from '@/app/constants/settings';
 import Heading from '@/app/components/Heading/Heading';
 import MainContent from '@/app/components/MainContent/MainContent';
+import GoalSection from '../GoalSection/GoalSection';
 import ResourceSection from '../ResourceSection/ResourceSection';
 import styles from './SettingsContents.module.scss';
 
@@ -32,7 +33,7 @@ const SettingsContents = ({ data }: SettingsContentsProps) => {
       <header className={styles.header}>
         <Heading level={1}>設定</Heading>
         <p className={styles.lead}>
-          口座とカテゴリを管理します。取引登録やシミュレーションで使用します。
+          口座・カテゴリ・目標を管理します。取引登録やシミュレーションで使用します。
         </p>
       </header>
 
@@ -65,6 +66,8 @@ const SettingsContents = ({ data }: SettingsContentsProps) => {
         onUpdate={updateCategory}
         onDelete={deleteCategory}
       />
+
+      <GoalSection goals={data.goals} />
     </MainContent>
   );
 };

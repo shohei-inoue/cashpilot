@@ -3,6 +3,7 @@ import {
   dateInputToISOEnd,
   dateInputToISOStart,
   datetimeLocalToISO,
+  formatDateOnly,
   toDateInputValue,
   toDatetimeLocalValue,
 } from './format';
@@ -26,5 +27,11 @@ describe('datetime helpers', () => {
     const start = dateInputToISOStart('2025-03-01');
     const end = dateInputToISOEnd('2025-03-31');
     expect(new Date(start).getTime()).toBeLessThan(new Date(end).getTime());
+  });
+
+  it('formatDateOnly formats YYYY-MM-DD', () => {
+    const formatted = formatDateOnly('2025-12-31');
+    expect(formatted).toContain('2025');
+    expect(formatted).toContain('31');
   });
 });
