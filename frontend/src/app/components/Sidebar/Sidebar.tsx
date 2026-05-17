@@ -9,6 +9,7 @@ const ICON_MAP: Record<string, string> = {
   home: 'home',
   transactions: 'receipt_long',
   simulation: 'trending_up',
+  settings: 'settings',
 };
 
 type SidebarProps = {

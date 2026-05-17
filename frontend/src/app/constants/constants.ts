@@ -19,4 +19,10 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
     text: 'Simulation',
     activePath: ['/simulation'],
   },
+  {
+    href: '/settings',
+    icon: 'settings',
+    text: 'Settings',
+    activePath: ['/settings'],
+  },
 ];
