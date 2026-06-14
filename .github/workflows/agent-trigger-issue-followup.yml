@@ -4,8 +4,8 @@
 name: Agent Trigger Issue Followup
 
 on:
-  issues:
-    types: [commented]
+  issue_comment:
+    types: [created]
 
 concurrency:
   group: agent-followup-${{ github.event.issue.number }}
@@ -21,20 +21,20 @@ jobs:
         contains(join(github.event.issue.labels.*.name, ','), 'agent:plan-proposed') ||
         contains(join(github.event.issue.labels.*.name, ','), 'agent:test-proposed')
       ) &&
-      github.event.comment.user.type == 'User' &&
+      !github.event.issue.pull_request &&
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
       !startsWith(github.event.comment.body, '【実装案】') &&
       !startsWith(github.event.comment.body, '【修正案】') &&
       !startsWith(github.event.comment.body, '【テスト実装】') &&
       !startsWith(github.event.comment.body, '【エージェント】') &&
-      contains(github.event.comment.body, '@cursor') &&
       (
         contains(github.event.comment.body, '@cursor ok') ||
-        contains(github.event.comment.body, 'fix plan') ||
-        contains(github.event.comment.body, 'reject') ||
+        contains(github.event.comment.body, '@cursor fix plan') ||
+        contains(github.event.comment.body, '@cursor reject') ||
         (
           contains(join(github.event.issue.labels.*.name, ','), 'agent:test-proposed') &&
-          contains(github.event.comment.body, 'fix') &&
-          !contains(github.event.comment.body, 'fix plan')
+          contains(github.event.comment.body, '@cursor fix') &&
+          !contains(github.event.comment.body, '@cursor fix plan')
         )
       )
     runs-on: ubuntu-latest

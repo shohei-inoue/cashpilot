@@ -3,8 +3,8 @@
 name: Agent Trigger Deliberation
 
 on:
-  issues:
-    types: [commented]
+  issue_comment:
+    types: [created]
 
 concurrency:
   group: agent-deliberation-${{ github.event.issue.number }}
@@ -16,10 +16,9 @@ permissions:
 jobs:
   trigger:
     if: >
-      github.event.comment.user.type == 'User' &&
-      contains(github.event.comment.body, '@cursor') &&
-      contains(github.event.comment.body, 'plan') &&
-      !contains(github.event.comment.body, 'fix plan') &&
+      !github.event.issue.pull_request &&
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
+      contains(github.event.comment.body, '@cursor plan') &&
       !contains(join(github.event.issue.labels.*.name, ','), 'agent:approved') &&
       !contains(join(github.event.issue.labels.*.name, ','), 'agent:rejected') &&
       !contains(join(github.event.issue.labels.*.name, ','), 'agent:test-implementing')
