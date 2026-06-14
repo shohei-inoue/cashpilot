@@ -21,6 +21,36 @@ CashPilot は個人向けのキャッシュフローシミュレーターと収�
 
 Phase 5 の画面実装では、既存の Server Actions（`frontend/src/app/actions/`）と API クライアント（`frontend/src/app/libs/client.ts`）のパターンに従ってください。
 
+## Cursor Automations
+
+このリポジトリではレビューと自動修正を **分離** して運用します。詳細は [docs/cursor-automations/](docs/cursor-automations/) を参照。
+
+| Automation | 役割 | いつ動くか |
+|------------|------|-----------|
+| `cashpilot-pr-review` | レビューコメントのみ | PR オープン時 |
+| `cashpilot-auto-fix` | 修正 PR を作成 | PR に `@cursor fix`、または CI 失敗時 |
+
+### 自動修正時のルール（cashpilot-auto-fix）
+
+**修正してよいもの**
+
+- lint エラー、型エラー、テスト失敗、単純なバグ（null チェック漏れ、import 漏れ、typo）
+
+**修正しないもの**
+
+- アーキテクチャ変更
+- Phase 5 の新機能実装（画面 API 連携）
+- セキュリティ設計の見直し
+- 修正の信頼度が低い場合
+
+**修正 PR の形式**
+
+- ブランチ名: `cursor/fix-<元PR番号>-5869`
+- ベースブランチ: 元 PR のブランチ
+- PR タイトル: `fix: address findings for #<元PR番号>`
+- 修正後は必ず lint / test を実行してから PR 作成
+- 元 PR に修正 PR のリンクをコメント
+
 ## Cursor Cloud specific instructions
 
 ### 依存関係のインストール

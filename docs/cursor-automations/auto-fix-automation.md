@@ -54,6 +54,8 @@ flowchart LR
 
 ### 4. プロンプト
 
+Automation 設定画面の **プロンプト** に以下を貼り付けます。リポジトリの `AGENTS.md`（Agent Instructions）は自動で読み込まれるため、別途入力は不要です。
+
 ```markdown
 ## Goal
 
