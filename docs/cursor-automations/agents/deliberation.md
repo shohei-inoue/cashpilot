@@ -35,18 +35,18 @@ Issue の要望（一言でも可）を読み、**難易度（easy / normal / ha
    easy/normal + OK  → agent:approved → 本実装
    hard + OK          → agent:test-implementing → 【テスト実装】
    hard + テスト確認後 OK → agent:approved → 本実装（修正しながら）
-   修正案:            → 【修正案】更新
-   却下              → agent:rejected
+   `@cursor fix plan` → 【修正案】更新
+   `@cursor reject`  → agent:rejected
 ```
 
 ### ユーザー向けコマンド
 
 | 入力 | easy / normal | hard（plan 段階） | hard（test 段階） |
 |------|--------------|------------------|------------------|
-| `OK` / `/ok` | 本実装開始 | テスト実装開始 | 本実装開始 |
-| `修正案: ...` / `/revise` | 実装案を更新 | 実装案を更新 | — |
-| `修正: ...` / `/revise-test` | — | — | テスト実装を修正 |
-| `却下` / `/reject` | 却下 | 却下 | 却下 |
+| `OK` | 本実装開始 | テスト実装開始 | 本実装開始 |
+| `@cursor fix plan` | 実装案を更新 | 実装案を更新 | — |
+| `@cursor fix` | — | — | テスト実装を修正 |
+| `@cursor reject` | 却下 | 却下 | 却下 |
 
 ## 難易度の判定基準
 
@@ -88,15 +88,16 @@ Issue の要望（一言でも可）を読み、**難易度（easy / normal / ha
 ```markdown
 ## Goal
 
-OK / 修正案 / 却下 を難易度と状態に応じて処理する。
+OK / `@cursor fix plan` / `@cursor fix` / `@cursor reject` を難易度と状態に応じて処理する。
 
 ## Process
 
 - easy/normal + OK → agent:approved
 - hard + OK（plan 段階）→ agent:test-implementing
 - hard + OK（test 段階）→ agent:approved
-- 修正案 → 【修正案】、ラベル維持
-- テスト修正 → agent:test-implementing 再付与
+- `@cursor fix plan` → 【修正案】、ラベル維持
+- `@cursor fix`（test 段階）→ agent:test-implementing 再付与
+- `@cursor reject` → agent:rejected
 ```
 
 ## 動作確認
@@ -104,7 +105,7 @@ OK / 修正案 / 却下 を難易度と状態に応じて処理する。
 - [ ] easy Issue → 簡潔な【実装案】+ agent:difficulty-easy
 - [ ] normal Issue → 詳細な【実装案】+ agent:difficulty-normal
 - [ ] hard Issue → 詳細案 + OK で【テスト実装】→ 再 OK で PR
-- [ ] 「修正案:」で【修正案】が更新される
+- [ ] 「@cursor fix plan」で【修正案】が更新される
 
 ## 次のエージェント
 

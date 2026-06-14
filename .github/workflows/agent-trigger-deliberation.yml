@@ -19,6 +19,7 @@ jobs:
       github.event.comment.user.type == 'User' &&
       contains(github.event.comment.body, '@cursor') &&
       contains(github.event.comment.body, 'plan') &&
+      !contains(github.event.comment.body, 'fix plan') &&
       !contains(join(github.event.issue.labels.*.name, ','), 'agent:approved') &&
       !contains(join(github.event.issue.labels.*.name, ','), 'agent:rejected') &&
       !contains(join(github.event.issue.labels.*.name, ','), 'agent:test-implementing')
@@ -50,6 +51,7 @@ jobs:
           - 変更対象ファイル（概略）
           - 受け入れ条件（箇条書き 2〜3 項目）
           - 末尾: \`OK で実装を開始します。\`
+          - 案内: \`@cursor fix plan\` で修正案、\`@cursor reject\` で却下
 
           ### normal（複数ファイル・設計判断が少し必要）
 
@@ -59,6 +61,7 @@ jobs:
           - 受け入れ条件
           - リスク・スコープ外の明示
           - 末尾: \`OK で実装を開始します。\`
+          - 案内: \`@cursor fix plan\` で修正案、\`@cursor reject\` で却下
 
           ### hard（広範囲・不確実性・新パターン・統合が複雑）
 
@@ -66,6 +69,7 @@ jobs:
           - テスト実装で検証するポイント
           - 想定リスクと本実装での修正方針
           - 末尾: \`OK でテスト実装を開始します。確認後に本実装へ進みます。\`
+          - 案内: \`@cursor fix plan\` で修正案、\`@cursor reject\` で却下
 
           gh issue comment ${ISSUE_NUMBER} --repo ${GH_REPO} --body "【実装案】難易度: ..."
 

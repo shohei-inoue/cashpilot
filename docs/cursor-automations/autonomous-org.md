@@ -102,8 +102,8 @@ GitHub リポジトリ → **Issues** → **Labels** で上記ラベルを作成
    → easy/normal + OK: agent:approved
    → hard + OK: agent:test-implementing → 【テスト実装】→ agent:test-proposed
    → hard + テスト確認後 OK: agent:approved
-   → 修正案: 【修正案】更新
-   → 却下: agent:rejected
+   → `@cursor fix plan`: 【修正案】更新
+   → `@cursor reject`: agent:rejected
 
 4. [Label: agent:approved] GHA → @cursor（本実装）
    → hard は【テスト実装】を踏まえ修正しながら実装

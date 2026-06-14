@@ -1,5 +1,5 @@
 # agent:plan-proposed / agent:test-proposed の Issue でユーザー追加入力を処理する。
-# 難易度（easy / normal / hard）に応じて分岐する。
+# OK（承認）、@cursor fix plan（修正案）、@cursor fix（テスト修正）、@cursor reject（却下）
 
 name: Agent Trigger Issue Followup
 
@@ -22,11 +22,36 @@ jobs:
         contains(join(github.event.issue.labels.*.name, ','), 'agent:test-proposed')
       ) &&
       github.event.comment.user.type == 'User' &&
-      !startsWith(github.event.comment.body, '@cursor') &&
       !startsWith(github.event.comment.body, '【実装案】') &&
       !startsWith(github.event.comment.body, '【修正案】') &&
       !startsWith(github.event.comment.body, '【テスト実装】') &&
-      !startsWith(github.event.comment.body, '【エージェント】')
+      !startsWith(github.event.comment.body, '【エージェント】') &&
+      (
+        (
+          !contains(github.event.comment.body, '@cursor') &&
+          (
+            contains(github.event.comment.body, 'OK') ||
+            contains(github.event.comment.body, 'ok') ||
+            contains(github.event.comment.body, '進めて') ||
+            contains(github.event.comment.body, 'LGTM') ||
+            contains(github.event.comment.body, '承認')
+          )
+        ) ||
+        (
+          contains(github.event.comment.body, '@cursor') &&
+          contains(github.event.comment.body, 'fix plan')
+        ) ||
+        (
+          contains(github.event.comment.body, '@cursor') &&
+          contains(github.event.comment.body, 'reject')
+        ) ||
+        (
+          contains(join(github.event.issue.labels.*.name, ','), 'agent:test-proposed') &&
+          contains(github.event.comment.body, '@cursor') &&
+          contains(github.event.comment.body, 'fix') &&
+          !contains(github.event.comment.body, 'fix plan')
+        )
+      )
     runs-on: ubuntu-latest
     steps:
       - name: Request follow-up action via @cursor comment
@@ -39,11 +64,20 @@ jobs:
           gh issue comment "$ISSUE_NUMBER" --repo "$GH_REPO" --body-file - <<EOF
           @cursor
 
-          Issue #${ISSUE_NUMBER} でユーザーが追加入力しました。難易度ラベルと状態に応じて次のアクションを実行してください。必ず gh コマンドを実行すること。
+          Issue #${ISSUE_NUMBER} でユーザーが追加入力しました。コメント内容に応じて次のアクションを実行してください。必ず gh コマンドを実行すること。
 
           ## ユーザーのコメント
 
           ${USER_COMMENT}
+
+          ## コマンドと対応
+
+          | コメント | 動作 |
+          |---------|------|
+          | \`OK\` | 承認（難易度・状態に応じて本実装 or テスト実装へ） |
+          | \`@cursor fix plan\` | 実装案を修正して【修正案】を投稿 |
+          | \`@cursor fix\` | テスト実装を修正（agent:test-proposed のみ） |
+          | \`@cursor reject\` | 却下 |
 
           ## 手順
 
@@ -52,13 +86,13 @@ jobs:
 
           2. 直近の【実装案】/【修正案】/【テスト実装】を確認する
 
-          3. 現在の状態と難易度ラベル（agent:difficulty-easy|normal|hard）を確認する
+          3. ユーザーのコメントを判定し、**いずれか 1 つ**を実行:
 
           ---
 
           ## agent:plan-proposed の場合
 
-          ### A. OK / 承認（「OK」「ok」「進めて」「LGTM」「承認」「/ok」「/implement」など）
+          ### A. OK（承認）
 
           #### easy または normal
 
@@ -80,13 +114,14 @@ jobs:
               --remove-label "agent:plan-proposed"
             （agent:test-implementing でテスト実装ワークフローが起動）
 
-          ### B. 修正案（「修正案:」「変更して」「別案」「/revise」など）
+          ### B. @cursor fix plan（実装案の修正）
 
+          - コメント内の修正指示を読む
           - architect subagent で実装案を更新
           - Issue に【修正案】として投稿（変更点を明示）
           - ラベルは agent:plan-proposed と難易度ラベルを維持
 
-          ### C. 却下（「却下」「やめて」「/reject」など）
+          ### C. @cursor reject（却下）
 
           - gh issue edit ${ISSUE_NUMBER} --repo ${GH_REPO} \
               --add-label "agent:rejected" \
@@ -94,35 +129,45 @@ jobs:
               --remove-label "agent:difficulty-easy" \
               --remove-label "agent:difficulty-normal" \
               --remove-label "agent:difficulty-hard"
+          - 却下理由をコメント
 
           ---
 
           ## agent:test-proposed の場合（hard のテスト実装確認後）
 
-          ### D. OK / 本実装へ（「OK」「ok」「本実装」「/implement」など）
+          ### D. OK（本実装へ）
 
           - gh issue edit ${ISSUE_NUMBER} --repo ${GH_REPO} \
               --add-label "agent:approved" \
               --remove-label "agent:test-proposed" \
               --remove-label "agent:difficulty-hard"
-            （agent:approved で本実装ワークフローが起動。テスト実装の結果を踏まえ修正しながら進める）
+            （agent:approved で本実装ワークフローが起動）
 
-          ### E. テスト実装の修正（「修正:」「テスト修正:」「/revise-test」など）
+          ### E. @cursor fix（テスト実装の修正）
 
+          - コメント内の修正指示を読む
           - 【テスト実装】の内容を修正
           - gh issue edit ${ISSUE_NUMBER} --repo ${GH_REPO} \
               --add-label "agent:test-implementing" \
               --remove-label "agent:test-proposed"
             （再度テスト実装ワークフローが起動）
 
-          ### F. 意図が不明
+          ### F. @cursor reject（却下）
 
-          - 【エージェント】で質問または選択肢を提示
+          - gh issue edit ${ISSUE_NUMBER} --repo ${GH_REPO} \
+              --add-label "agent:rejected" \
+              --remove-label "agent:test-proposed" \
+              --remove-label "agent:difficulty-hard"
+          - 却下理由をコメント
+
+          ### G. 意図が不明
+
+          - 【エージェント】で利用可能コマンドを案内（OK / @cursor fix / @cursor reject）
           - ラベルは変更しない
 
           ## 制約
 
           - エージェントのコメントは先頭に \`【エージェント】\` を付ける（ループ防止）
-          - plan-proposed 段階では PR を作らない（hard の OK はテスト実装へ委譲）
-          - test-proposed 段階でも PR を作らない（本実装は agent:approved 後）
+          - plan-proposed 段階では PR を作らない
+          - test-proposed 段階でも PR を作らない
           EOF
