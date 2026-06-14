@@ -43,7 +43,8 @@ GitHub Actions が Issue イベントを検知し、Issue に `@cursor` コメ�
 
 | ワークフロー | トリガー | 動作 |
 |-------------|---------|------|
-| `.github/workflows/agent-trigger-deliberation.yml` | Issue opened / `agent:proposed` ラベル付与 | 吟味依頼の `@cursor` コメントを投稿 |
+| `.github/workflows/agent-trigger-deliberation.yml` | Issue opened / `agent:proposed` ラベル付与 | 【実装案】を投稿、`agent:plan-proposed` |
+| `.github/workflows/agent-trigger-issue-followup.yml` | Issue コメント（`agent:plan-proposed` 時） | 実装・修正案・却下へ分岐 |
 | `.github/workflows/agent-trigger-implementation.yml` | `agent:approved` ラベル付与 | 実装依頼の `@cursor` コメントを投稿 |
 
 必要な GitHub 権限は `issues: write` のみ。`CURSOR_WEBHOOK_*` や `CURSOR_AUTOMATION_TOKEN` は **不要**。

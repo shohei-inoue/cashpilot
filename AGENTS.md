@@ -31,7 +31,7 @@ Phase 5 の画面実装では、既存の Server Actions（`frontend/src/app/act
 | エージェント | Automation 名 | 役割 |
 |------------|---------------|------|
 | 意思決定 | `cashpilot-product-decision` | 次タスクを Issue に提案 |
-| 吟味 | GHA → `@cursor` コメント | 提案を承認/却下（Webhook Automation は無効化） |
+| 吟味 | GHA → `@cursor` コメント | 実装案の提案、追加入力への対応 |
 | 実装 | GHA → `@cursor` コメント | 承認済み Issue を実装して PR 作成 |
 | レビュー・マージ | `cashpilot-review-merge` | PR レビュー、承認、`agent:merge-ready` 付与 |
 
@@ -39,7 +39,16 @@ Phase 5 の画面実装では、既存の Server Actions（`frontend/src/app/act
 
 ### GitHub ラベル（状態管理）
 
-`agent:proposed` → `agent:approved` → `agent:needs-review` → `agent:merge-ready` → 自動マージ
+`agent:proposed` → `agent:plan-proposed` → `agent:approved` → `agent:needs-review` → `agent:merge-ready` → 自動マージ
+
+### 一言 Issue の使い方
+
+1. Issue に要望を一言で書く（ラベル不要）
+2. 自動で【実装案】がコメントされる（`agent:plan-proposed`）
+3. Issue に追記:
+   - `実装して` → 実装と PR 作成
+   - `修正案: ...` → 実装案を更新
+   - `却下` → クローズ相当（`agent:rejected`）
 
 ### Subagent（1 実行内の役割分担）
 

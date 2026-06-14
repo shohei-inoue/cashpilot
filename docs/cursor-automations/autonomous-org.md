@@ -12,11 +12,15 @@ flowchart TB
         PD --> Issue["GitHub_Issue_作成"]
     end
 
-    subgraph deliberation [吟味]
+    subgraph deliberation [吟味・実装案]
         GHA_DL["GHA_@cursorコメント"]
         Issue --> GHA_DL
-        GHA_DL --> LabelApproved["label_agent-approved"]
-        GHA_DL --> LabelRejected["label_agent-rejected"]
+        GHA_DL --> LabelPlan["label_agent-plan-proposed"]
+        LabelPlan --> UserInput["ユーザー追加入力"]
+        UserInput --> GHA_FU["GHA_フォローアップ"]
+        GHA_FU --> LabelApproved["label_agent-approved"]
+        GHA_FU --> LabelPlan
+        GHA_FU --> LabelRejected["label_agent-rejected"]
     end
 
     subgraph implementation [実装]
@@ -42,7 +46,7 @@ flowchart TB
 | エージェント | Automation 名 | 役割 | コード変更 |
 |-------------|---------------|------|-----------|
 | **意思決定** | `cashpilot-product-decision` | バックログ分析、次タスク提案、Issue 作成 | なし |
-| **吟味** | GHA → `@cursor` | 提案の妥当性評価、承認/却下ラベル付与 | なし |
+| **吟味** | GHA → `@cursor` | 実装案の提案、追加入力への対応 | なし |
 | **実装** | GHA → `@cursor` | 承認済み Issue を実装し PR 作成 | あり |
 | **レビュー・マージ** | `cashpilot-review-merge` | PR レビュー、承認、マージ準備ラベル | なし（修正は auto-fix へ委譲） |
 
@@ -54,8 +58,9 @@ Automations 同士は直接呼び出せないため、**GitHub ラベル** で�
 
 | ラベル | 意味 | 付与者 |
 |--------|------|--------|
-| `agent:proposed` | 意思決定エージェントが提案した Issue | product-decision |
-| `agent:deliberating` | 吟味中 | deliberation |
+| `agent:proposed` | 要望・タスクの提案（自動または手動） | product-decision / ユーザー |
+| `agent:plan-proposed` | 実装案を提示済み、ユーザー入力待ち | deliberation |
+| `agent:deliberating` | 吟味中（任意・互換用） | deliberation |
 | `agent:approved` | 実装承認済み | deliberation |
 | `agent:rejected` | 却下 | deliberation |
 | `agent:implementing` | 実装中 | implementation |
@@ -68,25 +73,40 @@ GitHub リポジトリ → **Issues** → **Labels** で上記ラベルを作成
 
 ## 1 サイクルの流れ
 
+### 自動パイプライン（product-decision 起点）
+
 ```
 1. [cron 週1] product-decision
    → docs/implementation-flow.md を読み、次タスクを Issue に提案
    → ラベル: agent:proposed
 
-2. [Issue opened / agent:proposed] GHA → @cursor コメント（吟味）
-   → 提案を吟味（readonly subagent: architect）
-   → 承認: agent:approved / 却下: agent:rejected
+2. [Issue opened / agent:proposed] GHA → @cursor（実装案）
+   → 【実装案】をコメント、ラベル: agent:plan-proposed
 
-3. [Label: agent:approved] GHA → @cursor コメント（実装）
-   → subagent: planner → implementer → verifier
+3. [ユーザー追加入力] GHA → @cursor（フォローアップ）
+   → 「実装して」: agent:approved
+   → 「修正案:」: 【修正案】更新、agent:plan-proposed 維持
+   → 「却下」: agent:rejected
+
+4. [Label: agent:approved] GHA → @cursor（実装）
+   → subagent: implementer → verifier
    → PR 作成、ラベル: agent:needs-review
 
-4. [PR opened + CI completed] review-merge
+5. [PR opened + CI completed] review-merge
    → レビュー、問題あれば @cursor fix（auto-fix）
    → 基準を満たせば承認 + agent:merge-ready
 
-5. [Label: agent:merge-ready + CI green] GitHub Actions
+6. [Label: agent:merge-ready + CI green] GitHub Actions
    → develop へ自動マージ
+```
+
+### 手動 Issue（一言要望）
+
+```
+1. Issue に一言で要望を書く（例: 「ダッシュボードに今月の支出合計を表示」）
+2. 自動で【実装案】が付く（agent:plan-proposed）
+3. コメントで「実装して」「修正案: ...」「却下」を送る
+4. 以降は上記 4〜6 と同じ
 ```
 
 ## 完全自立の限界（正直な説明）
@@ -105,7 +125,7 @@ Cursor Automations には次の制約があります。
 
 | 順番 | 作業 | ドキュメント |
 |------|------|-------------|
-| 1 | GitHub ラベル 7 個を作成 | 上記表 |
+| 1 | GitHub ラベル 8 個を作成（`agent:plan-proposed` 含む） | 上記表 |
 | 2 | Subagent 4 個をリポジトリに追加 | [.cursor/agents/](../../.cursor/agents/) |
 | 3 | 意思決定 Automation 作成（**Scheduled**） | [product-decision.md](./agents/product-decision.md) |
 | 4 | 吟味・実装の Webhook Automation を **無効化**（残すと GHA と競合） | [triggers-guide.md](./triggers-guide.md) |

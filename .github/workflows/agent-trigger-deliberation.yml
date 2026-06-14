@@ -1,6 +1,6 @@
-# agent:proposed ラベル付き Issue を Cursor に吟味依頼する。
-# Webhook Automation は Issue への gh 実行が不安定なため、
-# 動作確認済みの @cursor Issue コメント経由で起動する。
+# Issue 作成時に実装案を提案する。
+# 一言で書かれた Issue でも architect subagent が実装案を出し、
+# ユーザーの追加入力を待つ（agent:plan-proposed）。
 
 name: Agent Trigger Deliberation
 
@@ -8,17 +8,34 @@ on:
   issues:
     types: [opened, labeled]
 
+concurrency:
+  group: agent-deliberation-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
 permissions:
   issues: write
 
 jobs:
   trigger:
     if: >
-      (github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'agent:proposed')) ||
-      (github.event.action == 'labeled' && github.event.label.name == 'agent:proposed')
+      (
+        github.event.action == 'opened' &&
+        (
+          length(github.event.issue.body) <= 300 ||
+          contains(join(github.event.issue.labels.*.name, ','), 'agent:proposed')
+        ) &&
+        !contains(join(github.event.issue.labels.*.name, ','), 'agent:plan-proposed') &&
+        !contains(join(github.event.issue.labels.*.name, ','), 'agent:approved') &&
+        !contains(join(github.event.issue.labels.*.name, ','), 'agent:rejected')
+      ) ||
+      (
+        github.event.action == 'labeled' &&
+        github.event.label.name == 'agent:proposed' &&
+        !contains(join(github.event.issue.labels.*.name, ','), 'agent:plan-proposed')
+      )
     runs-on: ubuntu-latest
     steps:
-      - name: Request Cursor deliberation via @cursor comment
+      - name: Request implementation plan via @cursor comment
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
@@ -27,26 +44,35 @@ jobs:
           gh issue comment "$ISSUE_NUMBER" --repo "$GH_REPO" --body-file - <<EOF
           @cursor
 
-          Issue #${ISSUE_NUMBER}（agent:proposed）を吟味してください。分析だけで終わらず、必ず gh コマンドを実行すること。
+          Issue #${ISSUE_NUMBER} の要望を読み、**実装案を提案**してください。分析だけで終わらず、必ず gh コマンドを実行すること。
 
           ## 手順
 
           1. Issue を読む:
              gh issue view ${ISSUE_NUMBER} --repo ${GH_REPO}
 
-          2. docs/implementation-flow.md, docs/frontend.md を読み、architect subagent で評価する
+          2. docs/implementation-flow.md, docs/frontend.md, docs/backend.md を読み、architect subagent で評価する
 
-          3. 吟味結果をコメント:
-             gh issue comment ${ISSUE_NUMBER} --repo ${GH_REPO} --body "【吟味結果】判定: 承認または却下。理由: ..."
+          3. Issue に実装案をコメント（先頭に \`【実装案】\` を付ける）:
+             - 要望の解釈（一言でも具体化する）
+             - 変更対象ファイル・画面・API
+             - 実装ステップ（3〜5 項目）
+             - 受け入れ条件
+             - リスク・スコープ外の明示
+             - 却下すべき場合は理由と代替案
 
-          4. ラベルを更新（承認の場合）:
-             gh issue edit ${ISSUE_NUMBER} --repo ${GH_REPO} --add-label "agent:approved" --remove-label "agent:proposed"
+             gh issue comment ${ISSUE_NUMBER} --repo ${GH_REPO} --body "【実装案】..."
 
-             却下の場合:
-             gh issue edit ${ISSUE_NUMBER} --repo ${GH_REPO} --add-label "agent:rejected" --remove-label "agent:proposed"
+          4. ラベルを更新:
+             gh issue edit ${ISSUE_NUMBER} --repo ${GH_REPO} --add-label "agent:plan-proposed" --remove-label "agent:proposed"
 
-          ## 判定基準
+          5. ユーザーへの案内をコメント末尾に含める:
+             - \`実装して\` / \`/implement\` → 実装と PR 作成
+             - \`修正案: ...\` / \`/revise\` → 実装案を更新
+             - \`却下\` / \`/reject\` → 却下
 
-          - 承認: Phase 5 スコープ内、バックエンド API が既に存在
-          - 却下: スコープ外、新 API 開発が必要
+          ## 制約
+
+          - この段階ではコード変更・PR 作成・agent:approved 付与は行わない
+          - スコープ外でもまず実装案または却下理由を提示する
           EOF

@@ -28,8 +28,8 @@ GitHub Actions が Issue に投稿した `@cursor` コメントから起動す�
 
 ## Process
 
-1. Issue 本文の受け入れ条件を読む
-2. `implementer` subagent で実装する
+1. Issue 本文とコメントの【実装案】/【修正案】を読む
+2. `implementer` subagent で実装する（承認済み案に従う）
 3. 検証:
    - `cd frontend && pnpm lint && pnpm test`
    - `cd backend && go test ./tests/unit/...`

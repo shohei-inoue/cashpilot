@@ -25,11 +25,12 @@ jobs:
           @cursor
 
           Issue #${ISSUE_NUMBER}（agent:approved）を実装し、PR を作成してください。
+          Issue コメントの【実装案】または【修正案】に従うこと。
 
           ## 手順
 
-          1. Issue を読む:
-             gh issue view ${ISSUE_NUMBER} --repo ${GH_REPO}
+          1. Issue とコメント履歴を読む（実装案を特定）:
+             gh issue view ${ISSUE_NUMBER} --repo ${GH_REPO} --comments
 
           2. implementer subagent で実装（Phase 5 スコープ、既存 Server Actions パターンに従う）
 

@@ -1,0 +1,81 @@
+# agent:plan-proposed の Issue でユーザーが追加入力したとき、
+# 実装・修正案・却下のいずれかに進める。
+
+name: Agent Trigger Issue Followup
+
+on:
+  issues:
+    types: [commented]
+
+concurrency:
+  group: agent-followup-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+permissions:
+  issues: write
+
+jobs:
+  trigger:
+    if: >
+      contains(join(github.event.issue.labels.*.name, ','), 'agent:plan-proposed') &&
+      github.event.comment.user.type == 'User' &&
+      !startsWith(github.event.comment.body, '@cursor') &&
+      !startsWith(github.event.comment.body, '【実装案】') &&
+      !startsWith(github.event.comment.body, '【修正案】') &&
+      !startsWith(github.event.comment.body, '【エージェント】')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request follow-up action via @cursor comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          USER_COMMENT: ${{ github.event.comment.body }}
+        run: |
+          gh issue comment "$ISSUE_NUMBER" --repo "$GH_REPO" --body-file - <<EOF
+          @cursor
+
+          Issue #${ISSUE_NUMBER}（agent:plan-proposed）でユーザーが追加入力しました。コメント内容に応じて次のアクションを実行してください。必ず gh コマンドを実行すること。
+
+          ## ユーザーのコメント
+
+          ${USER_COMMENT}
+
+          ## 手順
+
+          1. Issue とコメント履歴を読む:
+             gh issue view ${ISSUE_NUMBER} --repo ${GH_REPO} --comments
+
+          2. 直近の【実装案】または【修正案】を確認する
+
+          3. ユーザーの意図を判定し、**いずれか 1 つ**を実行:
+
+          ### A. 実装依頼（「実装して」「進めて」「LGTM」「承認」「/implement」など）
+
+          - スコープ外・却下理由が明記されている場合は実装せず、理由をコメント
+          - 実装可能な場合:
+            gh issue edit ${ISSUE_NUMBER} --repo ${GH_REPO} --add-label "agent:approved" --remove-label "agent:plan-proposed"
+            （agent:approved 付与後、実装ワークフローが起動する）
+
+          ### B. 修正案の依頼（「修正案:」「変更して」「別案」「/revise」など）
+
+          - architect subagent で実装案を更新
+          - Issue に【修正案】として投稿（変更点を明示）
+          - ラベルは agent:plan-proposed のまま
+          - 再度「実装して」で進められるよう案内
+
+          ### C. 却下（「却下」「やめて」「/reject」など）
+
+          - gh issue edit ${ISSUE_NUMBER} --repo ${GH_REPO} --add-label "agent:rejected" --remove-label "agent:plan-proposed"
+          - 却下理由をコメント
+
+          ### D. 意図が不明な場合
+
+          - 【エージェント】として質問または選択肢を提示（実装 / 修正案 / 却下）
+          - ラベルは変更しない
+
+          ## 制約
+
+          - エージェントのコメントは先頭に \`【エージェント】\` を付ける（ループ防止）
+          - B・D では PR 作成しない。A のみ agent:approved で実装フェーズへ委譲
+          EOF

@@ -1,6 +1,6 @@
 # 吟味エージェント: cashpilot-deliberation
 
-意思決定エージェントの提案を評価し、承認または却下する Automation です。
+Issue の要望（一言でも可）を読み、**実装案を提案**するエージェントです。ユーザーの追加入力後に実装・修正案・却下へ進みます。
 
 ## 設定
 
@@ -8,61 +8,88 @@
 |------|-----|
 | 名前 | `cashpilot-deliberation` |
 | トリガー | **不要**（GitHub Actions が `@cursor` コメントで起動） |
-| Automation（Webhook） | オプション。Issue への `gh` 実行は不安定なため **GHA 経由を推奨** |
+| Automation（Webhook） | オプション。**無効化推奨**（GHA 経由と競合する） |
 | リポジトリモード | Single repository（Automation を使う場合） |
 | ツール | なし |
 
-**推奨経路**: `.github/workflows/agent-trigger-deliberation.yml` が Issue に `@cursor` コメントを投稿し、吟味を依頼する（手動テストで動作確認済み）。
+**推奨経路**:
 
-## プロンプト
+- 初回: `.github/workflows/agent-trigger-deliberation.yml`（Issue 作成 / `agent:proposed`）
+- 追加入力: `.github/workflows/agent-trigger-issue-followup.yml`（Issue コメント）
+
+## 対話フロー
+
+```
+1. ユーザーが Issue に一言で要望を書く（ラベル任意）
+2. GHA → @cursor → 【実装案】をコメント、agent:plan-proposed
+3. ユーザーが追加入力:
+   - 「実装して」→ agent:approved → 実装フェーズ
+   - 「修正案: ...」→ 【修正案】を更新、agent:plan-proposed 維持
+   - 「却下」→ agent:rejected
+```
+
+### ユーザー向けコマンド例
+
+| 入力 | 動作 |
+|------|------|
+| `実装して` / `進めて` / `LGTM` / `/implement` | 実装案に基づき実装開始 |
+| `修正案: グラフは円グラフに` / `/revise` | 実装案を更新して再提案 |
+| `却下` / `やめて` / `/reject` | 却下 |
+
+## プロンプト（初回・実装案）
 
 ```markdown
 ## Goal
 
-`agent:proposed` ラベル付き Issue を吟味し、実装の承認または却下を判定する。
+Issue の要望を読み、実装案を提案する。即時の承認・実装は行わない。
 
 ## Context
 
-GitHub Actions が Issue に投稿した `@cursor` コメントから起動する。該当 Issue を `gh issue view` で読む。
+GitHub Actions が Issue に投稿した `@cursor` コメントから起動する。
 
 ## Process
 
 1. Issue 本文と `docs/implementation-flow.md`, `docs/frontend.md`, `docs/backend.md` を読む
-2. `architect` subagent を使い、設計・スコープ・リスクを評価する
-3. Issue に吟味結果をコメントする（判定・理由・懸念点・条件）
-4. ラベルを更新:
-   - 承認: `agent:approved` を追加、`agent:proposed` を削除
-   - 却下: `agent:rejected` を追加、`agent:proposed` を削除
-5. 条件付き承認の場合は条件を Issue コメントに明記し、`agent:approved` を付与
-
-## 判定基準
-
-### 承認
-- Phase 5 スコープ内
-- バックエンド API が既に存在
-- MVP の目的（家計管理・分析・シミュレーション）に貢献
-
-### 却下
-- スコープ外（Phase 6 以降、新 API 開発が必要）
-- 既に同等の Issue / PR が存在
-- リスクが高く受け入れ条件が曖昧
+2. `architect` subagent で設計・スコープ・リスクを評価する
+3. Issue に【実装案】をコメント（要望の解釈、変更箇所、ステップ、受け入れ条件、リスク）
+4. ラベル: `agent:plan-proposed` を追加、`agent:proposed` を削除
+5. ユーザーへの次アクション案内を末尾に含める
 
 ## Constraints
 
-- コード変更・PR 作成は行わない
-- 判定は「承認」「却下」を必ず明示
+- コード変更・PR 作成・`agent:approved` 付与は行わない
+- スコープ外の場合も【実装案】内で却下理由と代替案を提示
+```
 
-## Reference
+## プロンプト（追加入力・followup）
 
-- AGENTS.md
-- docs/cursor-automations/autonomous-org.md
+```markdown
+## Goal
+
+ユーザーの Issue コメントを解釈し、実装開始・修正案・却下のいずれかに進める。
+
+## Process
+
+1. Issue とコメント履歴、【実装案】/【修正案】を読む
+2. 意図判定:
+   - 実装依頼 → `agent:approved` 付与（実装ワークフローへ委譲）
+   - 修正依頼 → 【修正案】を投稿、`agent:plan-proposed` 維持
+   - 却下 → `agent:rejected` 付与
+   - 不明 → 【エージェント】で質問
+3. エージェントコメントは先頭に【エージェント】を付ける
+
+## Constraints
+
+- 修正依頼時は PR を作らない
+- 実装は `agent:approved` 付与のみ（実装エージェントに委譲）
 ```
 
 ## 動作確認
 
-- [ ] `agent:proposed` Issue 作成後、自動でコメントが付く
-- [ ] 承認時に `agent:approved` ラベルが付く
-- [ ] 却下時に `agent:rejected` ラベルが付く
+- [ ] 一言 Issue 作成後、【実装案】コメントと `agent:plan-proposed` が付く
+- [ ] 「実装して」コメント後、`agent:approved` になる
+- [ ] 「修正案:」コメント後、【修正案】が更新される
+- [ ] 「却下」コメント後、`agent:rejected` になる
 
 ## 次のエージェント
 
