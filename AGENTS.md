@@ -31,7 +31,7 @@ Phase 5 の画面実装では、既存の Server Actions（`frontend/src/app/act
 | エージェント | Automation 名 | 役割 |
 |------------|---------------|------|
 | 意思決定 | `cashpilot-product-decision` | 次タスクを Issue に提案 |
-| 吟味 | GHA → `@cursor` コメント | 提案を承認/却下（Webhook Automation は無効化） |
+| 吟味 | GHA → `@cursor` コメント | 実装案の提案、追加入力への対応 |
 | 実装 | GHA → `@cursor` コメント | 承認済み Issue を実装して PR 作成 |
 | レビュー・マージ | `cashpilot-review-merge` | PR レビュー、承認、`agent:merge-ready` 付与 |
 
@@ -39,7 +39,26 @@ Phase 5 の画面実装では、既存の Server Actions（`frontend/src/app/act
 
 ### GitHub ラベル（状態管理）
 
-`agent:proposed` → `agent:approved` → `agent:needs-review` → `agent:merge-ready` → 自動マージ
+`agent:proposed` → `agent:plan-proposed` → (`agent:test-proposed` ※hard のみ) → `agent:approved` → `agent:needs-review` → `agent:merge-ready` → 自動マージ
+
+難易度ラベル: `agent:difficulty-easy` / `agent:difficulty-normal` / `agent:difficulty-hard`
+
+### 一言 Issue の使い方（難易度別）
+
+1. Issue に要望を一言で書く
+2. Issue に **`@cursor plan`** とコメントする
+3. 【実装案】難易度: easy|normal|hard が付く
+4. 難易度に応じて進める:
+
+| 難易度 | 流れ |
+|--------|------|
+| **easy** | `@cursor ok` → 即実装 + PR |
+| **normal** | 具体案を確認 → `@cursor ok` → 実装 + PR |
+| **hard** | 具体案を確認 → `@cursor ok` → テスト実装 → `@cursor fix` or `@cursor ok` → 本実装 + PR |
+
+コマンド: `@cursor plan`（実装案）、`@cursor ok`（承認）、`@cursor fix plan`（修正案）、`@cursor fix`（hard のテスト実装修正）、`@cursor reject`（却下）
+
+【実装案】/【修正案】コメントの末尾に、難易度とコマンド一覧が毎回表示されます。
 
 ### Subagent（1 実行内の役割分担）
 

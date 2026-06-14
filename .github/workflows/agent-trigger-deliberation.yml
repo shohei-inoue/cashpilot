@@ -1,12 +1,14 @@
-# agent:proposed ラベル付き Issue を Cursor に吟味依頼する。
-# Webhook Automation は Issue への gh 実行が不安定なため、
-# 動作確認済みの @cursor Issue コメント経由で起動する。
+# Issue コメントの @cursor plan で難易度判定と実装案提案を起動する。
 
 name: Agent Trigger Deliberation
 
 on:
-  issues:
-    types: [opened, labeled]
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: agent-deliberation-${{ github.event.issue.number }}
+  cancel-in-progress: true
 
 permissions:
   issues: write
@@ -14,11 +16,15 @@ permissions:
 jobs:
   trigger:
     if: >
-      (github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'agent:proposed')) ||
-      (github.event.action == 'labeled' && github.event.label.name == 'agent:proposed')
+      !github.event.issue.pull_request &&
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
+      contains(github.event.comment.body, '@cursor plan') &&
+      !contains(join(github.event.issue.labels.*.name, ','), 'agent:approved') &&
+      !contains(join(github.event.issue.labels.*.name, ','), 'agent:rejected') &&
+      !contains(join(github.event.issue.labels.*.name, ','), 'agent:test-implementing')
     runs-on: ubuntu-latest
     steps:
-      - name: Request Cursor deliberation via @cursor comment
+      - name: Request difficulty assessment via @cursor comment
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
@@ -27,26 +33,89 @@ jobs:
           gh issue comment "$ISSUE_NUMBER" --repo "$GH_REPO" --body-file - <<EOF
           @cursor
 
-          Issue #${ISSUE_NUMBER}（agent:proposed）を吟味してください。分析だけで終わらず、必ず gh コマンドを実行すること。
+          Issue #${ISSUE_NUMBER} の要望を読み、**難易度（easy / normal / hard）を判定**し、段階に応じた提案をしてください。必ず gh コマンドを実行すること。
 
           ## 手順
 
           1. Issue を読む:
              gh issue view ${ISSUE_NUMBER} --repo ${GH_REPO}
 
-          2. docs/implementation-flow.md, docs/frontend.md を読み、architect subagent で評価する
+          2. docs/implementation-flow.md, docs/frontend.md, docs/backend.md を読み、architect subagent で評価する
 
-          3. 吟味結果をコメント:
-             gh issue comment ${ISSUE_NUMBER} --repo ${GH_REPO} --body "【吟味結果】判定: 承認または却下。理由: ..."
+          3. 難易度を判定し、Issue にコメント（先頭に \`【実装案】\`、2 行目に \`難易度: easy|normal|hard\` を必ず含める）:
 
-          4. ラベルを更新（承認の場合）:
-             gh issue edit ${ISSUE_NUMBER} --repo ${GH_REPO} --add-label "agent:approved" --remove-label "agent:proposed"
+          ### easy（単純・局所変更・既存パターン踏襲）
 
-             却下の場合:
-             gh issue edit ${ISSUE_NUMBER} --repo ${GH_REPO} --add-label "agent:rejected" --remove-label "agent:proposed"
+          - 要望の解釈（1〜2 文）
+          - 変更対象ファイル（概略）
+          - 受け入れ条件（箇条書き 2〜3 項目）
 
-          ## 判定基準
+          ### normal（複数ファイル・設計判断が少し必要）
 
-          - 承認: Phase 5 スコープ内、バックエンド API が既に存在
-          - 却下: スコープ外、新 API 開発が必要
+          - 要望の解釈
+          - 変更対象ファイル・画面・API
+          - 実装ステップ（3〜5 項目）
+          - 受け入れ条件
+          - リスク・スコープ外の明示
+
+          ### hard（広範囲・不確実性・新パターン・統合が複雑）
+
+          - normal と同様の**具体的な実装案**（詳細に）
+          - テスト実装で検証するポイント
+          - 想定リスクと本実装での修正方針
+
+          4. **コメント末尾に必ずフッターを付ける**（【実装案】/【修正案】共通・毎回表示）:
+
+          #### easy / normal のフッター
+
+          \`\`\`
+          ---
+          ### 次のアクション
+
+          **難易度: easy**（または normal）
+
+          | コマンド | 動作 |
+          |---------|------|
+          | \`@cursor ok\` | 本実装を開始 |
+          | \`@cursor fix plan\` | 実装案を修正 |
+          | \`@cursor reject\` | 却下 |
+          \`\`\`
+
+          #### hard のフッター
+
+          \`\`\`
+          ---
+          ### 次のアクション
+
+          **難易度: hard**
+
+          | コマンド | 動作 |
+          |---------|------|
+          | \`@cursor ok\` | テスト実装を開始 |
+          | \`@cursor fix plan\` | 実装案を修正 |
+          | \`@cursor reject\` | 却下 |
+          \`\`\`
+
+          gh issue comment ${ISSUE_NUMBER} --repo ${GH_REPO} --body "【実装案】..."
+
+          5. 難易度ラベルを付与（再実行時は既存の難易度ラベルを削除してから付与）:
+             gh issue edit ${ISSUE_NUMBER} --repo ${GH_REPO} \
+               --remove-label "agent:difficulty-easy" \
+               --remove-label "agent:difficulty-normal" \
+               --remove-label "agent:difficulty-hard" \
+               --remove-label "agent:test-proposed" \
+               --remove-label "agent:plan-proposed"
+
+             easy:   --add-label "agent:difficulty-easy"
+             normal: --add-label "agent:difficulty-normal"
+             hard:   --add-label "agent:difficulty-hard"
+
+             共通: --add-label "agent:plan-proposed" --remove-label "agent:proposed"
+
+          6. 却下すべき場合は難易度に関わらず理由と代替案を【実装案】に含め、agent:rejected を付与
+
+          ## 制約
+
+          - この段階ではコード変更・PR 作成・agent:approved 付与は行わない
+          - フッターは省略しない（ユーザーが毎回コマンドを確認できるようにする）
           EOF

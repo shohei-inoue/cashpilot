@@ -28,7 +28,9 @@ CashPilot のプロダクトバックログを分析し、次に実装すべき�
    - タイトル: `[Agent] Phase 5-X: <画面名> の実装`
    - 本文: product-planner の出力（提案・理由・受け入れ条件）
    - ラベル: `agent:proposed`
-4. 既に `agent:proposed` または `agent:approved` の未完了 Issue がある場合は新規作成をスキップし、既存 Issue へのコメントで状況を報告
+4. 作成した Issue に `@cursor plan` とコメントし、吟味フローを起動:
+   `gh issue comment <番号> --repo <repo> --body "@cursor plan"`
+5. 既に `agent:proposed` または `agent:approved` の未完了 Issue がある場合は新規作成をスキップし、既存 Issue へのコメントで状況を報告
 
 ## Constraints
 
@@ -51,4 +53,4 @@ CashPilot のプロダクトバックログを分析し、次に実装すべき�
 
 ## 次のエージェント
 
-→ [吟味エージェント](./deliberation.md) が `agent:proposed` Issue を処理
+→ [吟味エージェント](./deliberation.md) が `@cursor plan` コメントで起動

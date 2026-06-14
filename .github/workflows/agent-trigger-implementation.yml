@@ -1,11 +1,15 @@
 # agent:approved ラベル付与時に Cursor に実装依頼する。
-# @cursor Issue コメント経由で起動（permission test で動作確認済みの経路）。
+# 難易度ラベルに応じて easy / normal / hard（反復修正）で実装する。
 
 name: Agent Trigger Implementation
 
 on:
   issues:
     types: [labeled]
+
+concurrency:
+  group: agent-implementation-${{ github.event.issue.number }}
+  cancel-in-progress: true
 
 permissions:
   issues: write
@@ -25,13 +29,31 @@ jobs:
           @cursor
 
           Issue #${ISSUE_NUMBER}（agent:approved）を実装し、PR を作成してください。
+          Issue コメントの【実装案】/【修正案】/【テスト実装】に従うこと。
 
           ## 手順
 
-          1. Issue を読む:
-             gh issue view ${ISSUE_NUMBER} --repo ${GH_REPO}
+          1. Issue とコメント履歴を読む:
+             gh issue view ${ISSUE_NUMBER} --repo ${GH_REPO} --comments
 
-          2. implementer subagent で実装（Phase 5 スコープ、既存 Server Actions パターンに従う）
+          2. 難易度を確認（【実装案】の \`難易度:\` 行、または過去の【テスト実装】）:
+
+          ### easy
+
+          - 変更は最小限に。既存パターンを踏襲
+          - implementer → verifier → PR
+
+          ### normal
+
+          - 【実装案】のステップに沿って実装
+          - implementer → verifier → PR
+
+          ### hard（【テスト実装】がある場合）
+
+          - テスト実装ブランチ cursor/test-issue-${ISSUE_NUMBER}-5869 の結果を参照
+          - 【テスト実装】で判明した問題を**修正しながら**本実装する
+          - 不確実な部分は小さく実装→検証→修正を繰り返してから PR
+          - Issue に途中経過を【エージェント】で報告してよい（修正サイクルの記録）
 
           3. 検証:
              cd frontend && pnpm lint && pnpm test
@@ -43,6 +65,7 @@ jobs:
              - タイトル: feat(frontend): Issue #${ISSUE_NUMBER} の実装
              - PR ラベル: agent:needs-review
              - 本文に Closes #${ISSUE_NUMBER} を含める
+             - hard の場合: テスト実装からの変更点・修正内容を本文に記載
 
           5. Issue に PR リンクをコメント
 

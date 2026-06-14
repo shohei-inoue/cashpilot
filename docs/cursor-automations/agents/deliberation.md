@@ -1,6 +1,14 @@
 # 吟味エージェント: cashpilot-deliberation
 
-意思決定エージェントの提案を評価し、承認または却下する Automation です。
+Issue の要望（一言でも可）を読み、**難易度（easy / normal / hard）** を判定し、段階に応じた提案を行います。
+
+## 難易度とフロー
+
+| 難易度 | 初回提案 | ユーザーの `@cursor ok` 後 | 本実装 |
+|--------|---------|-----------------|--------|
+| **easy** | 概要 + 変更ファイル概略 | 即本実装開始 | 1 回で PR |
+| **normal** | 具体的な実装案（ステップ付き） | 即本実装開始 | 1 回で PR |
+| **hard** | 具体的な実装案 + テスト実装の検証ポイント | テスト実装 → 確認 → 本実装 | 修正を加えながら PR |
 
 ## 設定
 
@@ -8,18 +16,61 @@
 |------|-----|
 | 名前 | `cashpilot-deliberation` |
 | トリガー | **不要**（GitHub Actions が `@cursor` コメントで起動） |
-| Automation（Webhook） | オプション。Issue への `gh` 実行は不安定なため **GHA 経由を推奨** |
-| リポジトリモード | Single repository（Automation を使う場合） |
-| ツール | なし |
+| Automation（Webhook） | オプション。**無効化推奨** |
 
-**推奨経路**: `.github/workflows/agent-trigger-deliberation.yml` が Issue に `@cursor` コメントを投稿し、吟味を依頼する（手動テストで動作確認済み）。
+**推奨経路**:
 
-## プロンプト
+- 初回判定: Issue に `@cursor plan` コメント → `.github/workflows/agent-trigger-deliberation.yml`
+- 追加入力: `.github/workflows/agent-trigger-issue-followup.yml`
+- hard テスト実装: `.github/workflows/agent-trigger-test-implementation.yml`
+
+## 対話フロー
+
+```
+1. Issue に要望を書く
+2. `@cursor plan` とコメント
+3. 【実装案】難易度: easy|normal|hard + 提案内容 + コマンド一覧フッター
+   ラベル: agent:plan-proposed + agent:difficulty-*
+3. ユーザー入力:
+   easy/normal + @cursor ok  → agent:approved → 本実装
+   hard + @cursor ok         → agent:test-implementing → 【テスト実装】
+   hard + テスト確認後 @cursor ok → agent:approved → 本実装（修正しながら）
+   `@cursor fix plan` → 【修正案】更新
+   `@cursor reject`  → agent:rejected
+```
+
+### ユーザー向けコマンド
+
+| 入力 | easy / normal | hard（plan 段階） | hard（test 段階） |
+|------|--------------|------------------|------------------|
+| `@cursor ok` | 本実装開始 | テスト実装開始 | 本実装開始 |
+| `@cursor fix plan` | 実装案を更新 | 実装案を更新 | — |
+| `@cursor fix` | — | — | テスト実装を修正 |
+| `@cursor reject` | 却下 | 却下 | 却下 |
+
+## 難易度の判定基準
+
+### easy
+- 1〜2 ファイルの局所変更
+- 既存パターンの踏襲（スタイル修正、文言、単純な表示追加）
+- 新 API・新アーキテクチャ不要
+
+### normal
+- 複数ファイルの変更
+- 軽い設計判断（コンポーネント分割、既存 API の組み合わせ）
+- Phase 5 スコープ内、バックエンド API 既存
+
+### hard
+- 広範囲の変更または不確実なアプローチ
+- 新パターンの導入、複数画面・API の統合
+- テスト実装で検証すべき技術的リスクがある
+
+## プロンプト（初回・難易度判定）
 
 ```markdown
 ## Goal
 
-`agent:proposed` ラベル付き Issue を吟味し、実装の承認または却下を判定する。
+難易度を判定し、easy / normal / hard に応じた【実装案】を投稿する。
 
 ## Context
 
@@ -27,43 +78,40 @@ GitHub Actions が Issue に投稿した `@cursor` コメントから起動す�
 
 ## Process
 
-1. Issue 本文と `docs/implementation-flow.md`, `docs/frontend.md`, `docs/backend.md` を読む
-2. `architect` subagent を使い、設計・スコープ・リスクを評価する
-3. Issue に吟味結果をコメントする（判定・理由・懸念点・条件）
-4. ラベルを更新:
-   - 承認: `agent:approved` を追加、`agent:proposed` を削除
-   - 却下: `agent:rejected` を追加、`agent:proposed` を削除
-5. 条件付き承認の場合は条件を Issue コメントに明記し、`agent:approved` を付与
-
-## 判定基準
-
-### 承認
-- Phase 5 スコープ内
-- バックエンド API が既に存在
-- MVP の目的（家計管理・分析・シミュレーション）に貢献
-
-### 却下
-- スコープ外（Phase 6 以降、新 API 開発が必要）
-- 既に同等の Issue / PR が存在
-- リスクが高く受け入れ条件が曖昧
+1. architect subagent で評価
+2. 【実装案】難易度: X を投稿（段階に応じた詳細度）
+3. agent:plan-proposed + agent:difficulty-X を付与
+4. コメント末尾に難易度別フッター（コマンド一覧）を必ず付ける
 
 ## Constraints
 
-- コード変更・PR 作成は行わない
-- 判定は「承認」「却下」を必ず明示
+- コード変更・PR・agent:approved は行わない
+```
 
-## Reference
+## プロンプト（追加入力）
 
-- AGENTS.md
-- docs/cursor-automations/autonomous-org.md
+```markdown
+## Goal
+
+`@cursor ok` / `@cursor fix plan` / `@cursor fix` / `@cursor reject` を難易度と状態に応じて処理する。
+
+## Process
+
+- easy/normal + @cursor ok → agent:approved
+- hard + @cursor ok（plan 段階）→ agent:test-implementing
+- hard + @cursor ok（test 段階）→ agent:approved
+- `@cursor fix plan` → 【修正案】、ラベル維持
+- `@cursor fix`（test 段階）→ agent:test-implementing 再付与
+- `@cursor reject` → agent:rejected
 ```
 
 ## 動作確認
 
-- [ ] `agent:proposed` Issue 作成後、自動でコメントが付く
-- [ ] 承認時に `agent:approved` ラベルが付く
-- [ ] 却下時に `agent:rejected` ラベルが付く
+- [ ] easy Issue → 簡潔な【実装案】+ agent:difficulty-easy
+- [ ] normal Issue → 詳細な【実装案】+ agent:difficulty-normal
+- [ ] hard Issue → 詳細案 + @cursor ok で【テスト実装】→ 再 @cursor ok で PR
+- [ ] 「@cursor fix plan」で【修正案】が更新される
 
 ## 次のエージェント
 
-→ [実装エージェント](./implementation.md) が `agent:approved` を検知して実装開始
+→ [実装エージェント](./implementation.md) が `agent:approved` を検知して本実装開始

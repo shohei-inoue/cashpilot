@@ -21,9 +21,9 @@ Cursor Automations の GitHub トリガーは **PR 中心** です。Issue 関�
 
 | 探している名前 | 代替手段 |
 |---------------|----------|
-| Issue opened | **GHA → @cursor Issue コメント**（推奨） |
-| Issue label changed | **GHA → @cursor Issue コメント**（推奨） |
-| Issue commented | `@cursor` で直接起動可能 |
+| Issue opened | 手動で `@cursor plan` コメント |
+| Issue label changed | 手動で `@cursor plan` コメント |
+| Issue commented | `@cursor plan` / `@cursor ok` / `@cursor fix plan` / `@cursor fix` / `@cursor reject` |
 
 ## cashpilot 4 エージェントの正しい Trigger 設定
 
@@ -43,8 +43,10 @@ GitHub Actions が Issue イベントを検知し、Issue に `@cursor` コメ�
 
 | ワークフロー | トリガー | 動作 |
 |-------------|---------|------|
-| `.github/workflows/agent-trigger-deliberation.yml` | Issue opened / `agent:proposed` ラベル付与 | 吟味依頼の `@cursor` コメントを投稿 |
-| `.github/workflows/agent-trigger-implementation.yml` | `agent:approved` ラベル付与 | 実装依頼の `@cursor` コメントを投稿 |
+| `.github/workflows/agent-trigger-deliberation.yml` | Issue コメント `@cursor plan` | 難易度判定 + 【実装案】 |
+| `.github/workflows/agent-trigger-issue-followup.yml` | `@cursor ok` / `@cursor fix plan` / `@cursor fix` / `@cursor reject` | 難易度別分岐 |
+| `.github/workflows/agent-trigger-test-implementation.yml` | `agent:test-implementing` 付与 | hard のテスト実装 |
+| `.github/workflows/agent-trigger-implementation.yml` | `agent:approved` 付与 | 本実装 + PR |
 
 必要な GitHub 権限は `issues: write` のみ。`CURSOR_WEBHOOK_*` や `CURSOR_AUTOMATION_TOKEN` は **不要**。
 

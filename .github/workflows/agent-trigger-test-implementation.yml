@@ -1,0 +1,81 @@
+# hard 難易度: agent:test-implementing 付与時にテスト実装（スパイク）を行う。
+
+name: Agent Trigger Test Implementation
+
+on:
+  issues:
+    types: [labeled]
+
+concurrency:
+  group: agent-test-impl-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+permissions:
+  issues: write
+
+jobs:
+  trigger:
+    if: github.event.label.name == 'agent:test-implementing'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request test implementation via @cursor comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh issue comment "$ISSUE_NUMBER" --repo "$GH_REPO" --body-file - <<EOF
+          @cursor
+
+          Issue #${ISSUE_NUMBER}（難易度: hard）の**テスト実装**を行ってください。本 PR はまだ作成しません。必ず gh コマンドを実行すること。
+
+          ## 手順
+
+          1. Issue と【実装案】/【修正案】/【テスト実装】を読む:
+             gh issue view ${ISSUE_NUMBER} --repo ${GH_REPO} --comments
+
+          2. テスト実装の目的:
+             - 実装案の主要アプローチが成立するか検証する
+             - 不確実な部分を最小コードで試す
+             - 本実装前に問題点を洗い出す
+
+          3. implementer subagent でテスト実装:
+             - ブランチ: cursor/test-issue-${ISSUE_NUMBER}-5869
+             - 最小限の動作確認コード（UI スケルトン、API 接続試行など）
+             - 本番品質は求めないが、lint は通す
+
+          4. 検証:
+             cd frontend && pnpm lint
+             cd backend && go test ./tests/unit/...（変更がある場合）
+
+          5. Issue に【テスト実装】として結果をコメント:
+             - 試したアプローチ
+             - 動作確認結果
+             - 本実装で修正すべき点・リスク
+             - 変更したファイル一覧
+             - **コメント末尾に必ずフッターを付ける**:
+
+          \`\`\`
+          ---
+          ### 次のアクション
+
+          **難易度: hard（テスト実装完了）**
+
+          | コマンド | 動作 |
+          |---------|------|
+          | \`@cursor ok\` | 本実装を開始 |
+          | \`@cursor fix\` | テスト実装を修正 |
+          | \`@cursor reject\` | 却下 |
+          \`\`\`
+
+          6. ラベルを更新:
+             gh issue edit ${ISSUE_NUMBER} --repo ${GH_REPO} \
+               --add-label "agent:test-proposed" \
+               --remove-label "agent:test-implementing"
+
+          ## 制約
+
+          - PR は作成しない
+          - agent:approved は付与しない
+          - テスト用ブランチのコードは本実装の参考とする（マージしない）
+          EOF
