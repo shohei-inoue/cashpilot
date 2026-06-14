@@ -7,12 +7,18 @@ PR をレビューし、基準を満たせば承認してマージ準備を整�
 | 項目 | 値 |
 |------|-----|
 | 名前 | `cashpilot-review-merge` |
-| トリガー | **Pull request opened**, **Pull request pushed**（+ **CI completed** が UI にあれば追加） |
-| フィルタ | PR ラベル `agent:needs-review`（あれば） |
+| トリガー | **不要**（GitHub Actions が PR Open 時に `@cursor` コメントで起動） |
+| Automation（PR トリガー） | **無効化推奨**（Draft / pushed で二重起動するため GHA 経由を推奨） |
 | リポジトリモード | Single repository |
 | ツール | Comment on pull request（承認を有効化） |
 
-**注意**: **CI completed** はプランや連携状態によって UI に表示されない場合があります。なければ PR pushed のみで運用。[triggers-guide.md](../triggers-guide.md) 参照。
+**推奨経路**: `.github/workflows/agent-trigger-review-merge.yml`
+
+- **Draft PR ではレビューしない**（`draft == false` のときのみ起動）
+- **Open 時に自動起動**（`opened` + `ready_for_review`）
+- **Push では起動しない**（毎 push の重複レビューを防ぐ）
+
+Draft PR を Ready にしたとき（`ready_for_review`）もレビューが走ります。
 
 **既存 Automation との関係**
 
@@ -25,6 +31,10 @@ PR をレビューし、基準を満たせば承認してマージ準備を整�
 ## Goal
 
 `agent:needs-review` ラベル付き PR をレビューし、マージ可能なら承認して `agent:merge-ready` ラベルを付与する。
+
+## Context
+
+GitHub Actions が PR Open 時（非 Draft）に投稿した `@cursor` コメントから起動する。
 
 ## Process
 
@@ -59,6 +69,7 @@ PR をレビューし、基準を満たせば承認してマージ準備を整�
 
 - この Automation ではコード変更・PR 作成は行わない（修正は cashpilot-auto-fix へ）
 - **merge ボタンは押さない**（GitHub Actions が `agent:merge-ready` + CI 成功で実行）
+- **Draft PR では起動しない**（GHA が制御）
 
 ## Reference
 
@@ -68,9 +79,11 @@ PR をレビューし、基準を満たせば承認してマージ準備を整�
 
 ## 動作確認
 
-- [ ] `agent:needs-review` PR にレビューコメントが付く
+- [ ] Draft PR 作成時にレビューが**走らない**
+- [ ] Open PR（非 Draft）作成時にレビューが走る
+- [ ] Draft → Ready にしたとき（`ready_for_review`）にレビューが走る
+- [ ] PR push 時にはレビューが**走らない**（意図的）
 - [ ] 基準充足時に Approve と `agent:merge-ready` ラベルが付く
-- [ ] 修正必要時に `@cursor fix` コメントが付く
 
 ## マージの実行
 

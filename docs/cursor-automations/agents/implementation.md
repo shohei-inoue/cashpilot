@@ -79,4 +79,4 @@ GitHub Actions が Issue に投稿した `@cursor` コメントから起動す�
 
 ## 次のエージェント
 
-→ [レビュー・マージエージェント](./review-merge.md) が PR をレビュー
+→ [レビュー・マージエージェント](./review-merge.md) が PR Open 時（非 Draft）にレビュー

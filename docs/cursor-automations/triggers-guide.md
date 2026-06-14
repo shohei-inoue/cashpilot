@@ -32,7 +32,7 @@ Cursor Automations の GitHub トリガーは **PR 中心** です。Issue 関�
 | `cashpilot-product-decision` | **Scheduled** | そのまま使える |
 | `cashpilot-deliberation` | **不要（無効化推奨）** | GHA が `@cursor` コメントで起動 |
 | `cashpilot-implementation` | **不要（無効化推奨）** | GHA が `@cursor` コメントで起動 |
-| `cashpilot-review-merge` | **Pull request opened** + **Pull request pushed** | CI completed があれば追加 |
+| `cashpilot-review-merge` | **不要（GHA 経由）** | PR Open 時（非 Draft）に GHA が `@cursor` コメント |
 | `cashpilot-auto-fix` | **Pull request commented** | `@cursor fix` フィルタ |
 
 **重要**: 吟味・実装は **Webhook Automation と GHA の二重経路にしない**。Webhook 版は Issue への `gh` 実行が不安定だったため、GHA 経由の `@cursor` コメントに一本化する。
@@ -48,7 +48,9 @@ GitHub Actions が Issue イベントを検知し、Issue に `@cursor` コメ�
 | `.github/workflows/agent-trigger-test-implementation.yml` | `agent:test-implementing` 付与 | hard のテスト実装 |
 | `.github/workflows/agent-trigger-implementation.yml` | `agent:approved` 付与 | 本実装 + PR |
 
-必要な GitHub 権限は `issues: write` のみ。`CURSOR_WEBHOOK_*` や `CURSOR_AUTOMATION_TOKEN` は **不要**。
+| `.github/workflows/agent-trigger-review-merge.yml` | PR `opened` / `ready_for_review`（非 Draft、`agent:needs-review`） | レビュー依頼の `@cursor` コメント |
+
+**重要**: レビューは **Draft PR では走らない**。Open 時（Draft → Ready 含む）のみ起動。Push では起動しない。
 
 ### Cursor 側の設定
 
@@ -57,7 +59,7 @@ GitHub Actions が Issue イベントを検知し、Issue に `@cursor` コメ�
 有効にする Automation は次の 3 つ（+ 任意の auto-fix）:
 
 - `cashpilot-product-decision`（Scheduled）
-- `cashpilot-review-merge`（PR トリガー）
+- `cashpilot-review-merge`（**PR トリガーは無効化**、GHA 経由）
 - `cashpilot-auto-fix`（PR commented、`@cursor fix`）
 
 ## CI completed が表示されない場合
