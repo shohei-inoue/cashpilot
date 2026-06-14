@@ -7,23 +7,24 @@
 | 項目 | 値 |
 |------|-----|
 | 名前 | `cashpilot-implementation` |
-| トリガー | **Webhook**（GitHub Actions が `agent:approved` ラベル付与時に POST） |
-| リポジトリモード | Single repository |
+| トリガー | **不要**（GitHub Actions が `@cursor` コメントで起動） |
+| Automation（Webhook） | オプション。**無効化推奨**（GHA 経由と競合する） |
+| リポジトリモード | Single repository（Automation を使う場合） |
 | ベースブランチ | `develop` |
 | ツール | Pull request creation, Comment on pull request |
 
-**注意**: UI に **Issue label changed** トリガーはありません。[triggers-guide.md](../triggers-guide.md) 参照。
+**推奨経路**: `.github/workflows/agent-trigger-implementation.yml` が `agent:approved` ラベル付与時に `@cursor` コメントを投稿する。
 
 ## プロンプト
 
 ```markdown
 ## Goal
 
-Webhook ペイロードの Issue（`agent:approved` ラベル付き）を実装し、PR を作成する。
+`agent:approved` ラベル付き Issue を実装し、PR を作成する。
 
-## Webhook context
+## Context
 
-ペイロードに `issue_number`, `issue_url`, `issue_title` が含まれる。該当 Issue を `gh issue view` で読む。
+GitHub Actions が Issue に投稿した `@cursor` コメントから起動する。該当 Issue を `gh issue view` で読む。
 
 ## Process
 
