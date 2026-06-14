@@ -77,6 +77,7 @@ MVPでは、以下の機能にフォーカスする（詳細は [database.md](./
 - `docs/frontend.md`: 画面一覧、UIフロー、主要コンポーネント構成、状態管理方針など
 - `docs/infra.md`: ローカル開発環境（Docker Compose）。デプロイは将来検討。
 - `docs/auth.md`: 認証設計（JWT + httpOnly Cookie）
+- `docs/cursor-automations/`: **Cursor Automations** のセットアップ・運用ガイド（Cloud Agent 向け）
 
 本`README.md`は、上記の詳細ドキュメントの親となる「全体方針」として運用する。
 
