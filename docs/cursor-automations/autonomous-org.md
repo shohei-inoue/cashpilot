@@ -68,7 +68,7 @@ Automations 同士は直接呼び出せないため、**GitHub ラベル** で�
 |--------|------|--------|
 | `agent:proposed` | 要望・タスクの提案（自動または手動） | product-decision / ユーザー |
 | `agent:plan-proposed` | 実装案を提示済み、ユーザー入力待ち | deliberation |
-| `agent:difficulty-easy` | 難易度: 低（OK で即本実装） | deliberation |
+| `agent:difficulty-easy` | 難易度: 低（@cursor ok で即本実装） | deliberation |
 | `agent:difficulty-normal` | 難易度: 中（具体案確認後に本実装） | deliberation |
 | `agent:difficulty-hard` | 難易度: 高（テスト実装経由） | deliberation |
 | `agent:test-implementing` | テスト実装中（hard のみ） | test-implementation |
@@ -99,9 +99,9 @@ GitHub リポジトリ → **Issues** → **Labels** で上記ラベルを作成
    → ラベル: agent:plan-proposed + agent:difficulty-*
 
 3. [ユーザー追加入力] GHA → @cursor（フォローアップ）
-   → easy/normal + OK: agent:approved
-   → hard + OK: agent:test-implementing → 【テスト実装】→ agent:test-proposed
-   → hard + テスト確認後 OK: agent:approved
+   → easy/normal + @cursor ok: agent:approved
+   → hard + @cursor ok: agent:test-implementing → 【テスト実装】→ agent:test-proposed
+   → hard + テスト確認後 @cursor ok: agent:approved
    → `@cursor fix plan`: 【修正案】更新
    → `@cursor reject`: agent:rejected
 
@@ -123,8 +123,8 @@ GitHub リポジトリ → **Issues** → **Labels** で上記ラベルを作成
 1. Issue に一言で要望を書く
 2. `@cursor plan` とコメント
 3. 【実装案】難易度: easy|normal|hard が付く
-3. easy/normal: OK → 本実装 + PR
-   hard: OK → テスト実装 → 確認 → OK → 修正しながら本実装 + PR
+3. easy/normal: @cursor ok → 本実装 + PR
+   hard: @cursor ok → テスト実装 → @cursor fix or @cursor ok → 本実装 + PR
 4. 以降は review-merge → 自動マージ
 ```
 

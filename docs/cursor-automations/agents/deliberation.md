@@ -4,7 +4,7 @@ Issue の要望（一言でも可）を読み、**難易度（easy / normal / ha
 
 ## 難易度とフロー
 
-| 難易度 | 初回提案 | ユーザーの OK 後 | 本実装 |
+| 難易度 | 初回提案 | ユーザーの `@cursor ok` 後 | 本実装 |
 |--------|---------|-----------------|--------|
 | **easy** | 概要 + 変更ファイル概略 | 即本実装開始 | 1 回で PR |
 | **normal** | 具体的な実装案（ステップ付き） | 即本実装開始 | 1 回で PR |
@@ -29,12 +29,12 @@ Issue の要望（一言でも可）を読み、**難易度（easy / normal / ha
 ```
 1. Issue に要望を書く
 2. `@cursor plan` とコメント
-3. 【実装案】難易度: easy|normal|hard + 提案内容
+3. 【実装案】難易度: easy|normal|hard + 提案内容 + コマンド一覧フッター
    ラベル: agent:plan-proposed + agent:difficulty-*
 3. ユーザー入力:
-   easy/normal + OK  → agent:approved → 本実装
-   hard + OK          → agent:test-implementing → 【テスト実装】
-   hard + テスト確認後 OK → agent:approved → 本実装（修正しながら）
+   easy/normal + @cursor ok  → agent:approved → 本実装
+   hard + @cursor ok         → agent:test-implementing → 【テスト実装】
+   hard + テスト確認後 @cursor ok → agent:approved → 本実装（修正しながら）
    `@cursor fix plan` → 【修正案】更新
    `@cursor reject`  → agent:rejected
 ```
@@ -43,7 +43,7 @@ Issue の要望（一言でも可）を読み、**難易度（easy / normal / ha
 
 | 入力 | easy / normal | hard（plan 段階） | hard（test 段階） |
 |------|--------------|------------------|------------------|
-| `OK` | 本実装開始 | テスト実装開始 | 本実装開始 |
+| `@cursor ok` | 本実装開始 | テスト実装開始 | 本実装開始 |
 | `@cursor fix plan` | 実装案を更新 | 実装案を更新 | — |
 | `@cursor fix` | — | — | テスト実装を修正 |
 | `@cursor reject` | 却下 | 却下 | 却下 |
@@ -77,6 +77,7 @@ Issue の要望（一言でも可）を読み、**難易度（easy / normal / ha
 1. architect subagent で評価
 2. 【実装案】難易度: X を投稿（段階に応じた詳細度）
 3. agent:plan-proposed + agent:difficulty-X を付与
+4. コメント末尾に難易度別フッター（コマンド一覧）を必ず付ける
 
 ## Constraints
 
@@ -88,13 +89,13 @@ Issue の要望（一言でも可）を読み、**難易度（easy / normal / ha
 ```markdown
 ## Goal
 
-OK / `@cursor fix plan` / `@cursor fix` / `@cursor reject` を難易度と状態に応じて処理する。
+`@cursor ok` / `@cursor fix plan` / `@cursor fix` / `@cursor reject` を難易度と状態に応じて処理する。
 
 ## Process
 
-- easy/normal + OK → agent:approved
-- hard + OK（plan 段階）→ agent:test-implementing
-- hard + OK（test 段階）→ agent:approved
+- easy/normal + @cursor ok → agent:approved
+- hard + @cursor ok（plan 段階）→ agent:test-implementing
+- hard + @cursor ok（test 段階）→ agent:approved
 - `@cursor fix plan` → 【修正案】、ラベル維持
 - `@cursor fix`（test 段階）→ agent:test-implementing 再付与
 - `@cursor reject` → agent:rejected
@@ -104,7 +105,7 @@ OK / `@cursor fix plan` / `@cursor fix` / `@cursor reject` を難易度と状態
 
 - [ ] easy Issue → 簡潔な【実装案】+ agent:difficulty-easy
 - [ ] normal Issue → 詳細な【実装案】+ agent:difficulty-normal
-- [ ] hard Issue → 詳細案 + OK で【テスト実装】→ 再 OK で PR
+- [ ] hard Issue → 詳細案 + @cursor ok で【テスト実装】→ 再 @cursor ok で PR
 - [ ] 「@cursor fix plan」で【修正案】が更新される
 
 ## 次のエージェント

@@ -52,11 +52,13 @@ Phase 5 の画面実装では、既存の Server Actions（`frontend/src/app/act
 
 | 難易度 | 流れ |
 |--------|------|
-| **easy** | `OK` → 即実装 + PR |
-| **normal** | 具体案を確認 → `OK` → 実装 + PR |
-| **hard** | 具体案を確認 → `OK` → テスト実装 → 確認・修正 → `OK` → 修正しながら本実装 + PR |
+| **easy** | `@cursor ok` → 即実装 + PR |
+| **normal** | 具体案を確認 → `@cursor ok` → 実装 + PR |
+| **hard** | 具体案を確認 → `@cursor ok` → テスト実装 → `@cursor fix` or `@cursor ok` → 本実装 + PR |
 
-コマンド: `@cursor plan`（実装案）、`OK`（承認）、`@cursor fix plan`（修正案）、`@cursor fix`（hard のテスト実装修正）、`@cursor reject`（却下）
+コマンド: `@cursor plan`（実装案）、`@cursor ok`（承認）、`@cursor fix plan`（修正案）、`@cursor fix`（hard のテスト実装修正）、`@cursor reject`（却下）
+
+【実装案】/【修正案】コメントの末尾に、難易度とコマンド一覧が毎回表示されます。
 
 ### Subagent（1 実行内の役割分担）
 
