@@ -4,12 +4,14 @@ CashPilot で Cursor Automations を使う前に、Cursor Dashboard で行う初
 
 ## 前提条件
 
-| 要件 | 内容 |
-|------|------|
-| 有料プラン | Cloud Agents の利用に必要 |
+
+| 要件              | 内容                                           |
+| --------------- | -------------------------------------------- |
+| 有料プラン           | Cloud Agents の利用に必要                          |
 | On-Demand Usage | Automation 作成時に **従量課金の有効化が必須**（$1 以上の上限でも可） |
-| Git 接続 | コード変更系には GitHub / GitLab の read-write 接続 |
-| Max Mode | Automations は常に Max Mode（オフ不可） |
+| Git 接続          | コード変更系には GitHub / GitLab の read-write 接続     |
+| Max Mode        | Automations は常に Max Mode（オフ不可）               |
+
 
 ## セットアップ手順
 
@@ -34,12 +36,14 @@ CashPilot で Cursor Automations を使う前に、Cursor Dashboard で行う初
 
 Dashboard → **Cloud Agents** → **Secrets** で、以下を登録します（`.env` はリポジトリに含めない）。
 
-| Secret 名 | 用途 | 例 |
-|-----------|------|-----|
-| `DATABASE_URL` | API 結合テスト用 | `postgres://cashpilot:cashpilot@localhost:5432/cashpilot?sslmode=disable` |
-| `JWT_SECRET` | 認証 API テスト用 | 32 文字以上のランダム文字列 |
 
-ローカル開発用の値は [`.env.example`](../../.env.example) を参照してください。
+| Secret 名       | 用途          | 例                                                                         |
+| -------------- | ----------- | ------------------------------------------------------------------------- |
+| `DATABASE_URL` | API 結合テスト用  | `postgres://cashpilot:cashpilot@localhost:5432/cashpilot?sslmode=disable` |
+| `JWT_SECRET`   | 認証 API テスト用 | 32 文字以上のランダム文字列                                                           |
+
+
+ローカル開発用の値は `[.env.example](../../.env.example)` を参照してください。
 
 ### 5. On-Demand Usage を有効化
 
@@ -51,31 +55,36 @@ Dashboard → **Cloud Agents** → **Secrets** で、以下を登録します（
 
 cashpilot の開発で使う場合の推奨:
 
-| 統合 | 用途 |
-|------|------|
+
+| 統合         | 用途                      |
+| ---------- | ----------------------- |
 | **GitHub** | PR トリガー、コード変更、CI 連携（必須） |
-| **Slack** | 週次サマリー、バグ報告からの修正 PR（任意） |
-| **Linear** | Issue 作成時の自動トリアージ（任意） |
+| **Slack**  | 週次サマリー、バグ報告からの修正 PR（任意） |
+| **Linear** | Issue 作成時の自動トリアージ（任意）   |
+
 
 ## セットアップ完了の確認
 
 以下がすべて満たされていれば、次のステップ（[はじめの一歩](./getting-started.md)）に進めます。
 
-- [ ] GitHub に cashpilot リポジトリが接続されている
-- [ ] On-Demand Usage が有効化されている
-- [ ] Cloud Agents の Secrets に `JWT_SECRET` が登録されている
-- [ ] リポジトリに `AGENTS.md` と `.cursor/environment.json` が存在する（本リポジトリに含まれています）
+- [x] GitHub に cashpilot リポジトリが接続されている
+- [x] On-Demand Usage が有効化されている
+- [x] Cloud Agents の Secrets に `JWT_SECRET` が登録されている
+- [x] リポジトリに `AGENTS.md` と `.cursor/environment.json` が存在する（本リポジトリに含まれています）
 
 ## トラブルシューティング
 
-| 症状 | 対処 |
-|------|------|
-| Automation が起動しない | GitHub 接続、リポジトリ権限、有料プラン、on-demand 有効化を確認 |
-| Secrets が使えない | Dashboard → Cloud Agents → Secrets で名前のスペルミスを確認 |
-| 環境の起動が遅い | `.cursor/environment.json` の `install` スクリプトを最適化 |
+
+| 症状                | 対処                                               |
+| ----------------- | ------------------------------------------------ |
+| Automation が起動しない | GitHub 接続、リポジトリ権限、有料プラン、on-demand 有効化を確認         |
+| Secrets が使えない     | Dashboard → Cloud Agents → Secrets で名前のスペルミスを確認  |
+| 環境の起動が遅い          | `.cursor/environment.json` の `install` スクリプトを最適化 |
+
 
 ## 参考リンク
 
 - [Automations ドキュメント](https://cursor.com/docs/cloud-agent/automations)
 - [Cloud Agent セットアップ](https://cursor.com/docs/cloud-agent/setup)
 - [GitHub 統合](https://cursor.com/docs/integrations/github)
+

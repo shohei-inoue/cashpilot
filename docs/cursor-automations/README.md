@@ -7,7 +7,8 @@ CashPilot プロジェクトで Cursor Automations を活用するためのド�
 | ドキュメント | 内容 |
 |-------------|------|
 | [setup-guide.md](./setup-guide.md) | Dashboard での初期設定（GitHub 接続、Secrets、On-Demand） |
-| [getting-started.md](./getting-started.md) | Marketplace テンプレートで最初の PR レビュー Automation を作成 |
+| [getting-started.md](./getting-started.md) | PR レビュー Automation（コメントのみ）の作成 |
+| [auto-fix-automation.md](./auto-fix-automation.md) | 自動修正 Automation（レビューと分離、`@cursor fix`） |
 | [phase5-automations.md](./phase5-automations.md) | Phase 5（画面 API 連携）向け Automation のプロンプト設計 |
 
 ## リポジトリ設定
@@ -22,8 +23,9 @@ Cloud Agent / Automation が参照する設定ファイル:
 ## 学習パス
 
 1. [セットアップガイド](./setup-guide.md) で Dashboard を整備
-2. [はじめの一歩](./getting-started.md) で PR レビュー Automation を 1 つ作成
-3. Phase 5 開発開始時に [phase5-automations.md](./phase5-automations.md) の Automation を追加
+2. [はじめの一歩](./getting-started.md) で PR レビュー Automation（`cashpilot-pr-review`）を作成
+3. [自動修正 Automation](./auto-fix-automation.md) で `cashpilot-auto-fix` を追加
+4. Phase 5 開発開始時に [phase5-automations.md](./phase5-automations.md) の Automation を追加
 
 ## 公式ドキュメント
 
