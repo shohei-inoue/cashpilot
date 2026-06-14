@@ -1,4 +1,5 @@
-# agent:approved ラベル付与時に cashpilot-implementation Automation の Webhook を起動する。
+# agent:approved ラベル付与時に Cursor に実装依頼する。
+# @cursor Issue コメント経由で起動（permission test で動作確認済みの経路）。
 
 name: Agent Trigger Implementation
 
@@ -6,30 +7,44 @@ on:
   issues:
     types: [labeled]
 
+permissions:
+  issues: write
+
 jobs:
   trigger:
     if: github.event.label.name == 'agent:approved'
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Cursor implementation webhook
+      - name: Request Cursor implementation via @cursor comment
         env:
-          WEBHOOK_URL: ${{ secrets.CURSOR_WEBHOOK_IMPLEMENTATION_URL }}
-          AUTH_TOKEN: ${{ secrets.CURSOR_AUTOMATION_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
-          ISSUE_TITLE: ${{ github.event.issue.title }}
-          ISSUE_URL: ${{ github.event.issue.html_url }}
-          REPOSITORY: ${{ github.repository }}
         run: |
-          if [ -z "$WEBHOOK_URL" ] || [ -z "$AUTH_TOKEN" ]; then
-            echo "Webhook secrets not configured. Skipping."
-            exit 0
-          fi
-          curl -fsSL -X POST "$WEBHOOK_URL" \
-            -H "Authorization: Bearer $AUTH_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d "$(jq -n \
-              --argjson issue_number "$ISSUE_NUMBER" \
-              --arg issue_title "$ISSUE_TITLE" \
-              --arg issue_url "$ISSUE_URL" \
-              --arg repo "$REPOSITORY" \
-              '{event: "issue_implementation", issue_number: $issue_number, issue_title: $issue_title, issue_url: $issue_url, repo: $repo, label: "agent:approved"}')"
+          gh issue comment "$ISSUE_NUMBER" --repo "$GH_REPO" --body-file - <<EOF
+          @cursor
+
+          Issue #${ISSUE_NUMBER}（agent:approved）を実装し、PR を作成してください。
+
+          ## 手順
+
+          1. Issue を読む:
+             gh issue view ${ISSUE_NUMBER} --repo ${GH_REPO}
+
+          2. implementer subagent で実装（Phase 5 スコープ、既存 Server Actions パターンに従う）
+
+          3. 検証:
+             cd frontend && pnpm lint && pnpm test
+             cd backend && go test ./tests/unit/...
+
+          4. PR を作成:
+             - ブランチ: cursor/issue-${ISSUE_NUMBER}-5869
+             - ベース: develop
+             - タイトル: feat(frontend): Issue #${ISSUE_NUMBER} の実装
+             - PR ラベル: agent:needs-review
+             - 本文に Closes #${ISSUE_NUMBER} を含める
+
+          5. Issue に PR リンクをコメント
+
+          AGENTS.md に従うこと。
+          EOF
