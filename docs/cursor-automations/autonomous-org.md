@@ -13,16 +13,16 @@ flowchart TB
     end
 
     subgraph deliberation [吟味]
-        DL["cashpilot-deliberation"]
-        Issue --> DL
-        DL --> LabelApproved["label_agent-approved"]
-        DL --> LabelRejected["label_agent-rejected"]
+        GHA_DL["GHA_@cursorコメント"]
+        Issue --> GHA_DL
+        GHA_DL --> LabelApproved["label_agent-approved"]
+        GHA_DL --> LabelRejected["label_agent-rejected"]
     end
 
     subgraph implementation [実装]
-        IM["cashpilot-implementation"]
-        LabelApproved --> IM
-        IM --> PR["実装PR作成"]
+        GHA_IM["GHA_@cursorコメント"]
+        LabelApproved --> GHA_IM
+        GHA_IM --> PR["実装PR作成"]
     end
 
     subgraph reviewMerge [レビューとマージ]
@@ -42,8 +42,8 @@ flowchart TB
 | エージェント | Automation 名 | 役割 | コード変更 |
 |-------------|---------------|------|-----------|
 | **意思決定** | `cashpilot-product-decision` | バックログ分析、次タスク提案、Issue 作成 | なし |
-| **吟味** | `cashpilot-deliberation` | 提案の妥当性評価、承認/却下ラベル付与 | なし |
-| **実装** | `cashpilot-implementation` | 承認済み Issue を実装し PR 作成 | あり |
+| **吟味** | GHA → `@cursor` | 提案の妥当性評価、承認/却下ラベル付与 | なし |
+| **実装** | GHA → `@cursor` | 承認済み Issue を実装し PR 作成 | あり |
 | **レビュー・マージ** | `cashpilot-review-merge` | PR レビュー、承認、マージ準備ラベル | なし（修正は auto-fix へ委譲） |
 
 既存の `cashpilot-pr-review` と `cashpilot-auto-fix` は **レビュー・マージ** フェーズに統合または併用します。
@@ -73,11 +73,11 @@ GitHub リポジトリ → **Issues** → **Labels** で上記ラベルを作成
    → docs/implementation-flow.md を読み、次タスクを Issue に提案
    → ラベル: agent:proposed
 
-2. [Issue opened] deliberation（Webhook + GitHub Actions）
+2. [Issue opened / agent:proposed] GHA → @cursor コメント（吟味）
    → 提案を吟味（readonly subagent: architect）
    → 承認: agent:approved / 却下: agent:rejected
 
-3. [Label: agent:approved] implementation（Webhook + GitHub Actions）
+3. [Label: agent:approved] GHA → @cursor コメント（実装）
    → subagent: planner → implementer → verifier
    → PR 作成、ラベル: agent:needs-review
 
@@ -108,9 +108,8 @@ Cursor Automations には次の制約があります。
 | 1 | GitHub ラベル 7 個を作成 | 上記表 |
 | 2 | Subagent 4 個をリポジトリに追加 | [.cursor/agents/](../../.cursor/agents/) |
 | 3 | 意思決定 Automation 作成（**Scheduled**） | [product-decision.md](./agents/product-decision.md) |
-| 4 | 吟味 Automation 作成（**Webhook**） | [deliberation.md](./agents/deliberation.md) |
-| 4 | GitHub Secrets に Webhook URL を登録 | [triggers-guide.md](./triggers-guide.md) |
-| 5 | 実装 Automation 作成（**Webhook**） | [implementation.md](./agents/implementation.md) |
+| 4 | 吟味・実装の Webhook Automation を **無効化**（残すと GHA と競合） | [triggers-guide.md](./triggers-guide.md) |
+| 5 | GHA トリガーワークフローを有効化（`@cursor` コメント経由） | [deliberation.md](./agents/deliberation.md), [implementation.md](./agents/implementation.md) |
 | 6 | レビュー・マージ Automation 作成（**PR トリガー**） | [review-merge.md](./agents/review-merge.md) |
 | 7 | 既存 auto-fix を接続 | [auto-fix-automation.md](./auto-fix-automation.md) |
 | 8 | GitHub Actions マージワークフロー有効化 | [.github/workflows/agent-auto-merge.yml](../../.github/workflows/agent-auto-merge.yml) |
@@ -131,7 +130,7 @@ Automation 1 回の実行内では `.cursor/agents/` の Subagent に委譲し�
 
 | タイミング | 人間がやること |
 |-----------|---------------|
-| 初回 | ラベル作成、Automation 5 個の設定、On-Demand 有効化 |
+| 初回 | ラベル作成、Automation 3 個の設定（product-decision / review-merge / auto-fix）、On-Demand 有効化 |
 | 運用中 | `agent:rejected` の Issue を確認（任意） |
 | 緊急時 | Automation を無効化、手動マージ |
 

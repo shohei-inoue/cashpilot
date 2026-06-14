@@ -19,11 +19,11 @@
 ```markdown
 ## Goal
 
-Webhook ペイロードの Issue（`agent:proposed` ラベル付き）を吟味し、実装の承認または却下を判定する。
+`agent:proposed` ラベル付き Issue を吟味し、実装の承認または却下を判定する。
 
-## Webhook context
+## Context
 
-ペイロードに `issue_number`, `issue_url`, `issue_title` が含まれる。該当 Issue を `gh issue view` で読む。
+GitHub Actions が Issue に投稿した `@cursor` コメントから起動する。該当 Issue を `gh issue view` で読む。
 
 ## Process
 

@@ -30,30 +30,33 @@ Cursor Automations の GitHub トリガーは **PR 中心** です。Issue 関�
 | Automation | UI で選ぶトリガー | 補足 |
 |------------|------------------|------|
 | `cashpilot-product-decision` | **Scheduled** | そのまま使える |
-| `cashpilot-deliberation` | **Webhook** | GHA が Issue opened 時に POST |
-| `cashpilot-implementation` | **Webhook** | GHA が Issue labeled 時に POST |
+| `cashpilot-deliberation` | **不要（無効化推奨）** | GHA が `@cursor` コメントで起動 |
+| `cashpilot-implementation` | **不要（無効化推奨）** | GHA が `@cursor` コメントで起動 |
 | `cashpilot-review-merge` | **Pull request opened** + **Pull request pushed** | CI completed があれば追加 |
 | `cashpilot-auto-fix` | **Pull request commented** | `@cursor fix` フィルタ |
 
-## Webhook の設定手順
+**重要**: 吟味・実装は **Webhook Automation と GHA の二重経路にしない**。Webhook 版は Issue への `gh` 実行が不安定だったため、GHA 経由の `@cursor` コメントに一本化する。
 
-### 1. Cursor 側
+## 吟味・実装の起動経路（GHA → @cursor）
 
-1. Automation 作成時にトリガー **Webhook** を選択
-2. 保存後に **Webhook URL** と **API キー** が表示される
-3. GitHub リポジトリの Secrets に登録:
-   - `CURSOR_WEBHOOK_DELIBERATION_URL` — 吟味 Automation の Webhook URL
-   - `CURSOR_WEBHOOK_IMPLEMENTATION_URL` — 実装 Automation の Webhook URL
-   - `CURSOR_AUTOMATION_TOKEN` — **吟味 Automation** の API キー（`crsr_...` のみ）
+GitHub Actions が Issue イベントを検知し、Issue に `@cursor` コメントを投稿して Cloud Agent を起動します。
 
-**重要**: Webhook の API キーは **Automation ごとに別** です。実装用にも別キーが必要な場合は `CURSOR_AUTOMATION_TOKEN_IMPLEMENTATION` を追加し、ワークフローを更新してください。
+| ワークフロー | トリガー | 動作 |
+|-------------|---------|------|
+| `.github/workflows/agent-trigger-deliberation.yml` | Issue opened / `agent:proposed` ラベル付与 | 吟味依頼の `@cursor` コメントを投稿 |
+| `.github/workflows/agent-trigger-implementation.yml` | `agent:approved` ラベル付与 | 実装依頼の `@cursor` コメントを投稿 |
 
-### 2. GitHub 側
+必要な GitHub 権限は `issues: write` のみ。`CURSOR_WEBHOOK_*` や `CURSOR_AUTOMATION_TOKEN` は **不要**。
 
-次のワークフローが Issue イベントを Cursor Webhook に転送します。
+### Cursor 側の設定
 
-- `.github/workflows/agent-trigger-deliberation.yml` — Issue 作成時
-- `.github/workflows/agent-trigger-implementation.yml` — `agent:approved` ラベル付与時
+吟味・実装用の Webhook Automation（`cashpilot-deliberation`, `cashpilot-implementation`）は **無効化または削除** してください。残すと GHA と競合し、二重起動や未実行の原因になります。
+
+有効にする Automation は次の 3 つ（+ 任意の auto-fix）:
+
+- `cashpilot-product-decision`（Scheduled）
+- `cashpilot-review-merge`（PR トリガー）
+- `cashpilot-auto-fix`（PR commented、`@cursor fix`）
 
 ## CI completed が表示されない場合
 

@@ -31,8 +31,8 @@ Phase 5 の画面実装では、既存の Server Actions（`frontend/src/app/act
 | エージェント | Automation 名 | 役割 |
 |------------|---------------|------|
 | 意思決定 | `cashpilot-product-decision` | 次タスクを Issue に提案 |
-| 吟味 | `cashpilot-deliberation` | 提案を承認/却下 |
-| 実装 | `cashpilot-implementation` | 承認済み Issue を実装して PR 作成 |
+| 吟味 | GHA → `@cursor` コメント | 提案を承認/却下（Webhook Automation は無効化） |
+| 実装 | GHA → `@cursor` コメント | 承認済み Issue を実装して PR 作成 |
 | レビュー・マージ | `cashpilot-review-merge` | PR レビュー、承認、`agent:merge-ready` 付与 |
 
 補助: `cashpilot-auto-fix`（`@cursor fix` で修正 PR 作成）
