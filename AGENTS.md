@@ -33,7 +33,7 @@ Phase 5 の画面実装では、既存の Server Actions（`frontend/src/app/act
 | 意思決定 | `cashpilot-product-decision` | 次タスクを Issue に提案 |
 | 吟味 | GHA → `@cursor` コメント | 実装案の提案、追加入力への対応 |
 | 実装 | GHA → `@cursor` コメント | 承認済み Issue を実装して PR 作成 |
-| レビュー・マージ | `cashpilot-review-merge` | PR レビュー、承認、`agent:merge-ready` 付与 |
+| レビュー・マージ | `cashpilot-review-merge` | PR レビュー、承認、`agent:merge-ready` 付与（**Open 時のみ、Draft では走らない**） |
 
 補助: `cashpilot-auto-fix`（`@cursor fix` で修正 PR 作成）
 

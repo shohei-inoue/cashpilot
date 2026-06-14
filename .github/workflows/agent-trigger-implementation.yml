@@ -66,6 +66,7 @@ jobs:
              - PR ラベル: agent:needs-review
              - 本文に Closes #${ISSUE_NUMBER} を含める
              - hard の場合: テスト実装からの変更点・修正内容を本文に記載
+             - **Draft では作成しない**（Open で作成し、GHA がレビューを起動）
 
           5. Issue に PR リンクをコメント
 

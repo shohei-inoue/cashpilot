@@ -109,7 +109,7 @@ GitHub リポジトリ → **Issues** → **Labels** で上記ラベルを作成
    → hard は【テスト実装】を踏まえ修正しながら実装
    → PR 作成、ラベル: agent:needs-review
 
-5. [PR opened + CI completed] review-merge
+5. [PR Open（非 Draft）] GHA → @cursor（review-merge）
    → レビュー、問題あれば @cursor fix（auto-fix）
    → 基準を満たせば承認 + agent:merge-ready
 
@@ -149,10 +149,11 @@ Cursor Automations には次の制約があります。
 | 3 | 意思決定 Automation 作成（**Scheduled**） | [product-decision.md](./agents/product-decision.md) |
 | 4 | 吟味・実装の Webhook Automation を **無効化**（残すと GHA と競合） | [triggers-guide.md](./triggers-guide.md) |
 | 5 | GHA トリガーワークフローを有効化（`@cursor` コメント経由） | [deliberation.md](./agents/deliberation.md), [implementation.md](./agents/implementation.md) |
-| 6 | レビュー・マージ Automation 作成（**PR トリガー**） | [review-merge.md](./agents/review-merge.md) |
-| 7 | 既存 auto-fix を接続 | [auto-fix-automation.md](./auto-fix-automation.md) |
-| 8 | GitHub Actions マージワークフロー有効化 | [.github/workflows/agent-auto-merge.yml](../../.github/workflows/agent-auto-merge.yml) |
-| 9 | Approval Policy 確認 | [.cursor/approval-policies/ROUTING.md](../../.cursor/approval-policies/ROUTING.md) |
+| 6 | レビュー・マージの PR トリガー Automation を **無効化**（GHA 経由） | [review-merge.md](./agents/review-merge.md) |
+| 7 | GHA レビューワークフローを有効化 | [.github/workflows/agent-trigger-review-merge.yml](../../.github/workflows/agent-trigger-review-merge.yml) |
+| 8 | 既存 auto-fix を接続 | [auto-fix-automation.md](./auto-fix-automation.md) |
+| 9 | GitHub Actions マージワークフロー有効化 | [.github/workflows/agent-auto-merge.yml](../../.github/workflows/agent-auto-merge.yml) |
+| 10 | Approval Policy 確認 | [.cursor/approval-policies/ROUTING.md](../../.cursor/approval-policies/ROUTING.md) |
 
 ## Subagent（1 実行内の役割分担）
 
