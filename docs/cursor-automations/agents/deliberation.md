@@ -72,6 +72,10 @@ Issue の要望（一言でも可）を読み、**難易度（easy / normal / ha
 
 難易度を判定し、easy / normal / hard に応じた【実装案】を投稿する。
 
+## Context
+
+GitHub Actions が Issue に投稿した `@cursor` コメントから起動する。該当 Issue を `gh issue view` で読む。
+
 ## Process
 
 1. architect subagent で評価
