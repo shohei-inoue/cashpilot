@@ -39,16 +39,23 @@ Phase 5 の画面実装では、既存の Server Actions（`frontend/src/app/act
 
 ### GitHub ラベル（状態管理）
 
-`agent:proposed` → `agent:plan-proposed` → `agent:approved` → `agent:needs-review` → `agent:merge-ready` → 自動マージ
+`agent:proposed` → `agent:plan-proposed` → (`agent:test-proposed` ※hard のみ) → `agent:approved` → `agent:needs-review` → `agent:merge-ready` → 自動マージ
 
-### 一言 Issue の使い方
+難易度ラベル: `agent:difficulty-easy` / `agent:difficulty-normal` / `agent:difficulty-hard`
 
-1. Issue に要望を一言で書く（ラベル不要）
-2. 自動で【実装案】がコメントされる（`agent:plan-proposed`）
-3. Issue に追記:
-   - `実装して` → 実装と PR 作成
-   - `修正案: ...` → 実装案を更新
-   - `却下` → クローズ相当（`agent:rejected`）
+### 一言 Issue の使い方（難易度別）
+
+1. Issue に要望を一言で書く
+2. 自動で【実装案】難易度: easy|normal|hard が付く
+3. 難易度に応じて進める:
+
+| 難易度 | 流れ |
+|--------|------|
+| **easy** | `OK` → 即実装 + PR |
+| **normal** | 具体案を確認 → `OK` → 実装 + PR |
+| **hard** | 具体案を確認 → `OK` → テスト実装 → 確認・修正 → `OK` → 修正しながら本実装 + PR |
+
+コマンド: `OK`（承認）、`修正案: ...`（案の変更）、`修正: ...`（hard のテスト実装修正）、`却下`
 
 ### Subagent（1 実行内の役割分担）
 

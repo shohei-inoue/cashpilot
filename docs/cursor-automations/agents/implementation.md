@@ -13,7 +13,18 @@
 | ベースブランチ | `develop` |
 | ツール | Pull request creation, Comment on pull request |
 
-**推奨経路**: `.github/workflows/agent-trigger-implementation.yml` が `agent:approved` ラベル付与時に `@cursor` コメントを投稿する。
+**推奨経路**:
+
+- 本実装: `.github/workflows/agent-trigger-implementation.yml`（`agent:approved` 時）
+- hard のテスト実装: `.github/workflows/agent-trigger-test-implementation.yml`
+
+## 難易度別の実装方針
+
+| 難易度 | 方針 |
+|--------|------|
+| easy | 最小変更、既存パターン踏襲、1 回で PR |
+| normal | 【実装案】のステップに沿って実装 |
+| hard | 【テスト実装】の結果を参照し、問題を修正しながら本実装。小さく実装→検証→修正を繰り返す |
 
 ## プロンプト
 
@@ -28,8 +39,8 @@ GitHub Actions が Issue に投稿した `@cursor` コメントから起動す�
 
 ## Process
 
-1. Issue 本文とコメントの【実装案】/【修正案】を読む
-2. `implementer` subagent で実装する（承認済み案に従う）
+1. Issue 本文とコメントの【実装案】/【修正案】/【テスト実装】を読む
+2. 難易度に応じて implementer subagent で実装（hard はテスト実装の修正点を反映）
 3. 検証:
    - `cd frontend && pnpm lint && pnpm test`
    - `cd backend && go test ./tests/unit/...`

@@ -1,6 +1,14 @@
 # 吟味エージェント: cashpilot-deliberation
 
-Issue の要望（一言でも可）を読み、**実装案を提案**するエージェントです。ユーザーの追加入力後に実装・修正案・却下へ進みます。
+Issue の要望（一言でも可）を読み、**難易度（easy / normal / hard）** を判定し、段階に応じた提案を行います。
+
+## 難易度とフロー
+
+| 難易度 | 初回提案 | ユーザーの OK 後 | 本実装 |
+|--------|---------|-----------------|--------|
+| **easy** | 概要 + 変更ファイル概略 | 即本実装開始 | 1 回で PR |
+| **normal** | 具体的な実装案（ステップ付き） | 即本実装開始 | 1 回で PR |
+| **hard** | 具体的な実装案 + テスト実装の検証ポイント | テスト実装 → 確認 → 本実装 | 修正を加えながら PR |
 
 ## 設定
 
@@ -8,89 +16,95 @@ Issue の要望（一言でも可）を読み、**実装案を提案**するエ�
 |------|-----|
 | 名前 | `cashpilot-deliberation` |
 | トリガー | **不要**（GitHub Actions が `@cursor` コメントで起動） |
-| Automation（Webhook） | オプション。**無効化推奨**（GHA 経由と競合する） |
-| リポジトリモード | Single repository（Automation を使う場合） |
-| ツール | なし |
+| Automation（Webhook） | オプション。**無効化推奨** |
 
 **推奨経路**:
 
-- 初回: `.github/workflows/agent-trigger-deliberation.yml`（Issue 作成 / `agent:proposed`）
-- 追加入力: `.github/workflows/agent-trigger-issue-followup.yml`（Issue コメント）
+- 初回判定: `.github/workflows/agent-trigger-deliberation.yml`
+- 追加入力: `.github/workflows/agent-trigger-issue-followup.yml`
+- hard テスト実装: `.github/workflows/agent-trigger-test-implementation.yml`
 
 ## 対話フロー
 
 ```
-1. ユーザーが Issue に一言で要望を書く（ラベル任意）
-2. GHA → @cursor → 【実装案】をコメント、agent:plan-proposed
-3. ユーザーが追加入力:
-   - 「実装して」→ agent:approved → 実装フェーズ
-   - 「修正案: ...」→ 【修正案】を更新、agent:plan-proposed 維持
-   - 「却下」→ agent:rejected
+1. Issue 作成
+2. 【実装案】難易度: easy|normal|hard + 提案内容
+   ラベル: agent:plan-proposed + agent:difficulty-*
+3. ユーザー入力:
+   easy/normal + OK  → agent:approved → 本実装
+   hard + OK          → agent:test-implementing → 【テスト実装】
+   hard + テスト確認後 OK → agent:approved → 本実装（修正しながら）
+   修正案:            → 【修正案】更新
+   却下              → agent:rejected
 ```
 
-### ユーザー向けコマンド例
+### ユーザー向けコマンド
 
-| 入力 | 動作 |
-|------|------|
-| `実装して` / `進めて` / `LGTM` / `/implement` | 実装案に基づき実装開始 |
-| `修正案: グラフは円グラフに` / `/revise` | 実装案を更新して再提案 |
-| `却下` / `やめて` / `/reject` | 却下 |
+| 入力 | easy / normal | hard（plan 段階） | hard（test 段階） |
+|------|--------------|------------------|------------------|
+| `OK` / `/ok` | 本実装開始 | テスト実装開始 | 本実装開始 |
+| `修正案: ...` / `/revise` | 実装案を更新 | 実装案を更新 | — |
+| `修正: ...` / `/revise-test` | — | — | テスト実装を修正 |
+| `却下` / `/reject` | 却下 | 却下 | 却下 |
 
-## プロンプト（初回・実装案）
+## 難易度の判定基準
+
+### easy
+- 1〜2 ファイルの局所変更
+- 既存パターンの踏襲（スタイル修正、文言、単純な表示追加）
+- 新 API・新アーキテクチャ不要
+
+### normal
+- 複数ファイルの変更
+- 軽い設計判断（コンポーネント分割、既存 API の組み合わせ）
+- Phase 5 スコープ内、バックエンド API 既存
+
+### hard
+- 広範囲の変更または不確実なアプローチ
+- 新パターンの導入、複数画面・API の統合
+- テスト実装で検証すべき技術的リスクがある
+
+## プロンプト（初回・難易度判定）
 
 ```markdown
 ## Goal
 
-Issue の要望を読み、実装案を提案する。即時の承認・実装は行わない。
-
-## Context
-
-GitHub Actions が Issue に投稿した `@cursor` コメントから起動する。
+難易度を判定し、easy / normal / hard に応じた【実装案】を投稿する。
 
 ## Process
 
-1. Issue 本文と `docs/implementation-flow.md`, `docs/frontend.md`, `docs/backend.md` を読む
-2. `architect` subagent で設計・スコープ・リスクを評価する
-3. Issue に【実装案】をコメント（要望の解釈、変更箇所、ステップ、受け入れ条件、リスク）
-4. ラベル: `agent:plan-proposed` を追加、`agent:proposed` を削除
-5. ユーザーへの次アクション案内を末尾に含める
+1. architect subagent で評価
+2. 【実装案】難易度: X を投稿（段階に応じた詳細度）
+3. agent:plan-proposed + agent:difficulty-X を付与
 
 ## Constraints
 
-- コード変更・PR 作成・`agent:approved` 付与は行わない
-- スコープ外の場合も【実装案】内で却下理由と代替案を提示
+- コード変更・PR・agent:approved は行わない
 ```
 
-## プロンプト（追加入力・followup）
+## プロンプト（追加入力）
 
 ```markdown
 ## Goal
 
-ユーザーの Issue コメントを解釈し、実装開始・修正案・却下のいずれかに進める。
+OK / 修正案 / 却下 を難易度と状態に応じて処理する。
 
 ## Process
 
-1. Issue とコメント履歴、【実装案】/【修正案】を読む
-2. 意図判定:
-   - 実装依頼 → `agent:approved` 付与（実装ワークフローへ委譲）
-   - 修正依頼 → 【修正案】を投稿、`agent:plan-proposed` 維持
-   - 却下 → `agent:rejected` 付与
-   - 不明 → 【エージェント】で質問
-3. エージェントコメントは先頭に【エージェント】を付ける
-
-## Constraints
-
-- 修正依頼時は PR を作らない
-- 実装は `agent:approved` 付与のみ（実装エージェントに委譲）
+- easy/normal + OK → agent:approved
+- hard + OK（plan 段階）→ agent:test-implementing
+- hard + OK（test 段階）→ agent:approved
+- 修正案 → 【修正案】、ラベル維持
+- テスト修正 → agent:test-implementing 再付与
 ```
 
 ## 動作確認
 
-- [ ] 一言 Issue 作成後、【実装案】コメントと `agent:plan-proposed` が付く
-- [ ] 「実装して」コメント後、`agent:approved` になる
-- [ ] 「修正案:」コメント後、【修正案】が更新される
-- [ ] 「却下」コメント後、`agent:rejected` になる
+- [ ] easy Issue → 簡潔な【実装案】+ agent:difficulty-easy
+- [ ] normal Issue → 詳細な【実装案】+ agent:difficulty-normal
+- [ ] hard Issue → 詳細案 + OK で【テスト実装】→ 再 OK で PR
+- [ ] 「修正案:」で【修正案】が更新される
 
 ## 次のエージェント
 
-→ [実装エージェント](./implementation.md) が `agent:approved` を検知して実装開始
+→ [実装エージェント](./implementation.md) が `agent:approved` を検知して本実装開始

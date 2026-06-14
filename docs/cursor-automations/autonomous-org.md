@@ -12,18 +12,26 @@ flowchart TB
         PD --> Issue["GitHub_Issue_作成"]
     end
 
-    subgraph deliberation [吟味・実装案]
+    subgraph deliberation [吟味・難易度判定]
         GHA_DL["GHA_@cursorコメント"]
         Issue --> GHA_DL
-        GHA_DL --> LabelPlan["label_agent-plan-proposed"]
-        LabelPlan --> UserInput["ユーザー追加入力"]
+        GHA_DL --> LabelPlan["label_plan-proposed"]
+        LabelPlan --> UserInput["ユーザー_OK"]
         UserInput --> GHA_FU["GHA_フォローアップ"]
-        GHA_FU --> LabelApproved["label_agent-approved"]
+        GHA_FU --> LabelApproved["label_approved"]
+        GHA_FU --> TestImpl["label_test-implementing"]
         GHA_FU --> LabelPlan
-        GHA_FU --> LabelRejected["label_agent-rejected"]
+        GHA_FU --> LabelRejected["label_rejected"]
     end
 
-    subgraph implementation [実装]
+    subgraph testImpl [テスト実装_hardのみ]
+        GHA_TEST["GHA_テスト実装"]
+        TestImpl --> GHA_TEST
+        GHA_TEST --> LabelTestDone["label_test-proposed"]
+        LabelTestDone --> UserInput
+    end
+
+    subgraph implementation [本実装]
         GHA_IM["GHA_@cursorコメント"]
         LabelApproved --> GHA_IM
         GHA_IM --> PR["実装PR作成"]
@@ -60,6 +68,11 @@ Automations 同士は直接呼び出せないため、**GitHub ラベル** で�
 |--------|------|--------|
 | `agent:proposed` | 要望・タスクの提案（自動または手動） | product-decision / ユーザー |
 | `agent:plan-proposed` | 実装案を提示済み、ユーザー入力待ち | deliberation |
+| `agent:difficulty-easy` | 難易度: 低（OK で即本実装） | deliberation |
+| `agent:difficulty-normal` | 難易度: 中（具体案確認後に本実装） | deliberation |
+| `agent:difficulty-hard` | 難易度: 高（テスト実装経由） | deliberation |
+| `agent:test-implementing` | テスト実装中（hard のみ） | test-implementation |
+| `agent:test-proposed` | テスト実装完了、確認待ち（hard のみ） | test-implementation |
 | `agent:deliberating` | 吟味中（任意・互換用） | deliberation |
 | `agent:approved` | 実装承認済み | deliberation |
 | `agent:rejected` | 却下 | deliberation |
@@ -80,16 +93,19 @@ GitHub リポジトリ → **Issues** → **Labels** で上記ラベルを作成
    → docs/implementation-flow.md を読み、次タスクを Issue に提案
    → ラベル: agent:proposed
 
-2. [Issue opened / agent:proposed] GHA → @cursor（実装案）
-   → 【実装案】をコメント、ラベル: agent:plan-proposed
+2. [Issue opened / agent:proposed] GHA → @cursor（難易度判定 + 実装案）
+   → 【実装案】難易度: easy|normal|hard
+   → ラベル: agent:plan-proposed + agent:difficulty-*
 
 3. [ユーザー追加入力] GHA → @cursor（フォローアップ）
-   → 「実装して」: agent:approved
-   → 「修正案:」: 【修正案】更新、agent:plan-proposed 維持
-   → 「却下」: agent:rejected
+   → easy/normal + OK: agent:approved
+   → hard + OK: agent:test-implementing → 【テスト実装】→ agent:test-proposed
+   → hard + テスト確認後 OK: agent:approved
+   → 修正案: 【修正案】更新
+   → 却下: agent:rejected
 
-4. [Label: agent:approved] GHA → @cursor（実装）
-   → subagent: implementer → verifier
+4. [Label: agent:approved] GHA → @cursor（本実装）
+   → hard は【テスト実装】を踏まえ修正しながら実装
    → PR 作成、ラベル: agent:needs-review
 
 5. [PR opened + CI completed] review-merge
@@ -100,13 +116,14 @@ GitHub リポジトリ → **Issues** → **Labels** で上記ラベルを作成
    → develop へ自動マージ
 ```
 
-### 手動 Issue（一言要望）
+### 手動 Issue（一言要望・難易度別）
 
 ```
-1. Issue に一言で要望を書く（例: 「ダッシュボードに今月の支出合計を表示」）
-2. 自動で【実装案】が付く（agent:plan-proposed）
-3. コメントで「実装して」「修正案: ...」「却下」を送る
-4. 以降は上記 4〜6 と同じ
+1. Issue に一言で要望を書く
+2. 【実装案】難易度: easy|normal|hard が付く
+3. easy/normal: OK → 本実装 + PR
+   hard: OK → テスト実装 → 確認 → OK → 修正しながら本実装 + PR
+4. 以降は review-merge → 自動マージ
 ```
 
 ## 完全自立の限界（正直な説明）
@@ -125,7 +142,7 @@ Cursor Automations には次の制約があります。
 
 | 順番 | 作業 | ドキュメント |
 |------|------|-------------|
-| 1 | GitHub ラベル 8 個を作成（`agent:plan-proposed` 含む） | 上記表 |
+| 1 | GitHub ラベル 12 個を作成（難易度・テスト実装ラベル含む） | 上記表 |
 | 2 | Subagent 4 個をリポジトリに追加 | [.cursor/agents/](../../.cursor/agents/) |
 | 3 | 意思決定 Automation 作成（**Scheduled**） | [product-decision.md](./agents/product-decision.md) |
 | 4 | 吟味・実装の Webhook Automation を **無効化**（残すと GHA と競合） | [triggers-guide.md](./triggers-guide.md) |
