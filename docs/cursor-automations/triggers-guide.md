@@ -21,9 +21,9 @@ Cursor Automations の GitHub トリガーは **PR 中心** です。Issue 関�
 
 | 探している名前 | 代替手段 |
 |---------------|----------|
-| Issue opened | **Webhook** + GitHub Actions |
-| Issue label changed | **Webhook** + GitHub Actions |
-| Issue commented | **Webhook** + GitHub Actions |
+| Issue opened | **GHA → @cursor Issue コメント**（推奨） |
+| Issue label changed | **GHA → @cursor Issue コメント**（推奨） |
+| Issue commented | `@cursor` で直接起動可能 |
 
 ## cashpilot 4 エージェントの正しい Trigger 設定
 
