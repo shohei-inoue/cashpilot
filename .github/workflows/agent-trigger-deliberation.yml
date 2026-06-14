@@ -1,10 +1,10 @@
-# Issue 作成時に難易度（easy / normal / hard）を判定し、段階に応じた提案を行う。
+# Issue コメントの @cursor plan で難易度判定と実装案提案を起動する。
 
 name: Agent Trigger Deliberation
 
 on:
   issues:
-    types: [opened, labeled]
+    types: [commented]
 
 concurrency:
   group: agent-deliberation-${{ github.event.issue.number }}
@@ -16,22 +16,12 @@ permissions:
 jobs:
   trigger:
     if: >
-      (
-        github.event.action == 'opened' &&
-        (
-          length(github.event.issue.body) <= 300 ||
-          contains(join(github.event.issue.labels.*.name, ','), 'agent:proposed')
-        ) &&
-        !contains(join(github.event.issue.labels.*.name, ','), 'agent:plan-proposed') &&
-        !contains(join(github.event.issue.labels.*.name, ','), 'agent:test-proposed') &&
-        !contains(join(github.event.issue.labels.*.name, ','), 'agent:approved') &&
-        !contains(join(github.event.issue.labels.*.name, ','), 'agent:rejected')
-      ) ||
-      (
-        github.event.action == 'labeled' &&
-        github.event.label.name == 'agent:proposed' &&
-        !contains(join(github.event.issue.labels.*.name, ','), 'agent:plan-proposed')
-      )
+      github.event.comment.user.type == 'User' &&
+      contains(github.event.comment.body, '@cursor') &&
+      contains(github.event.comment.body, 'plan') &&
+      !contains(join(github.event.issue.labels.*.name, ','), 'agent:approved') &&
+      !contains(join(github.event.issue.labels.*.name, ','), 'agent:rejected') &&
+      !contains(join(github.event.issue.labels.*.name, ','), 'agent:test-implementing')
     runs-on: ubuntu-latest
     steps:
       - name: Request difficulty assessment via @cursor comment
@@ -79,7 +69,14 @@ jobs:
 
           gh issue comment ${ISSUE_NUMBER} --repo ${GH_REPO} --body "【実装案】難易度: ..."
 
-          4. 難易度ラベルを付与:
+          4. 難易度ラベルを付与（再実行時は既存の難易度ラベルを削除してから付与）:
+             gh issue edit ${ISSUE_NUMBER} --repo ${GH_REPO} \
+               --remove-label "agent:difficulty-easy" \
+               --remove-label "agent:difficulty-normal" \
+               --remove-label "agent:difficulty-hard" \
+               --remove-label "agent:test-proposed" \
+               --remove-label "agent:plan-proposed"
+
              easy:   --add-label "agent:difficulty-easy"
              normal: --add-label "agent:difficulty-normal"
              hard:   --add-label "agent:difficulty-hard"

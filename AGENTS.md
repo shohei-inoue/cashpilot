@@ -46,8 +46,9 @@ Phase 5 の画面実装では、既存の Server Actions（`frontend/src/app/act
 ### 一言 Issue の使い方（難易度別）
 
 1. Issue に要望を一言で書く
-2. 自動で【実装案】難易度: easy|normal|hard が付く
-3. 難易度に応じて進める:
+2. Issue に **`@cursor plan`** とコメントする
+3. 【実装案】難易度: easy|normal|hard が付く
+4. 難易度に応じて進める:
 
 | 難易度 | 流れ |
 |--------|------|
@@ -55,7 +56,7 @@ Phase 5 の画面実装では、既存の Server Actions（`frontend/src/app/act
 | **normal** | 具体案を確認 → `OK` → 実装 + PR |
 | **hard** | 具体案を確認 → `OK` → テスト実装 → 確認・修正 → `OK` → 修正しながら本実装 + PR |
 
-コマンド: `OK`（承認）、`修正案: ...`（案の変更）、`修正: ...`（hard のテスト実装修正）、`却下`
+コマンド: `@cursor plan`（実装案の作成）、`OK`（承認）、`修正案: ...`（案の変更）、`修正: ...`（hard のテスト実装修正）、`却下`
 
 ### Subagent（1 実行内の役割分担）
 

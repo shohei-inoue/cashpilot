@@ -92,8 +92,9 @@ GitHub リポジトリ → **Issues** → **Labels** で上記ラベルを作成
 1. [cron 週1] product-decision
    → docs/implementation-flow.md を読み、次タスクを Issue に提案
    → ラベル: agent:proposed
+   → Issue に `@cursor plan` とコメント
 
-2. [Issue opened / agent:proposed] GHA → @cursor（難易度判定 + 実装案）
+2. [Issue コメント: @cursor plan] GHA → @cursor（難易度判定 + 実装案）
    → 【実装案】難易度: easy|normal|hard
    → ラベル: agent:plan-proposed + agent:difficulty-*
 
@@ -120,7 +121,8 @@ GitHub リポジトリ → **Issues** → **Labels** で上記ラベルを作成
 
 ```
 1. Issue に一言で要望を書く
-2. 【実装案】難易度: easy|normal|hard が付く
+2. `@cursor plan` とコメント
+3. 【実装案】難易度: easy|normal|hard が付く
 3. easy/normal: OK → 本実装 + PR
    hard: OK → テスト実装 → 確認 → OK → 修正しながら本実装 + PR
 4. 以降は review-merge → 自動マージ

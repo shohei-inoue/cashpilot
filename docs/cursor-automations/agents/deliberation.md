@@ -20,15 +20,16 @@ Issue の要望（一言でも可）を読み、**難易度（easy / normal / ha
 
 **推奨経路**:
 
-- 初回判定: `.github/workflows/agent-trigger-deliberation.yml`
+- 初回判定: Issue に `@cursor plan` コメント → `.github/workflows/agent-trigger-deliberation.yml`
 - 追加入力: `.github/workflows/agent-trigger-issue-followup.yml`
 - hard テスト実装: `.github/workflows/agent-trigger-test-implementation.yml`
 
 ## 対話フロー
 
 ```
-1. Issue 作成
-2. 【実装案】難易度: easy|normal|hard + 提案内容
+1. Issue に要望を書く
+2. `@cursor plan` とコメント
+3. 【実装案】難易度: easy|normal|hard + 提案内容
    ラベル: agent:plan-proposed + agent:difficulty-*
 3. ユーザー入力:
    easy/normal + OK  → agent:approved → 本実装
