@@ -42,9 +42,11 @@ Cursor Automations の GitHub トリガーは **PR 中心** です。Issue 関�
 1. Automation 作成時にトリガー **Webhook** を選択
 2. 保存後に **Webhook URL** と **API キー** が表示される
 3. GitHub リポジトリの Secrets に登録:
-   - `CURSOR_WEBHOOK_DELIBERATION_URL`
-   - `CURSOR_WEBHOOK_IMPLEMENTATION_URL`
-   - `CURSOR_AUTOMATION_TOKEN`
+   - `CURSOR_WEBHOOK_DELIBERATION_URL` — 吟味 Automation の Webhook URL
+   - `CURSOR_WEBHOOK_IMPLEMENTATION_URL` — 実装 Automation の Webhook URL
+   - `CURSOR_AUTOMATION_TOKEN` — **吟味 Automation** の API キー（`crsr_...` のみ）
+
+**重要**: Webhook の API キーは **Automation ごとに別** です。実装用にも別キーが必要な場合は `CURSOR_AUTOMATION_TOKEN_IMPLEMENTATION` を追加し、ワークフローを更新してください。
 
 ### 2. GitHub 側
 

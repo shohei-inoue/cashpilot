@@ -28,13 +28,29 @@ jobs:
             echo "Webhook secrets not configured. Skipping."
             exit 0
           fi
-          curl -fsSL -X POST "$WEBHOOK_URL" \
+
+          payload="$(jq -n \
+            --argjson issue_number "$ISSUE_NUMBER" \
+            --arg issue_title "$ISSUE_TITLE" \
+            --arg issue_url "$ISSUE_URL" \
+            --arg repo "$REPOSITORY" \
+            --arg action "$GITHUB_ACTION" \
+            '{event: "issue_deliberation", issue_number: $issue_number, issue_title: $issue_title, issue_url: $issue_url, repo: $repo, github_action: $action}')"
+
+          response_file="$(mktemp)"
+          http_code="$(curl -sS -o "$response_file" -w "%{http_code}" -X POST "$WEBHOOK_URL" \
             -H "Authorization: Bearer $AUTH_TOKEN" \
             -H "Content-Type: application/json" \
-            -d "$(jq -n \
-              --argjson issue_number "$ISSUE_NUMBER" \
-              --arg issue_title "$ISSUE_TITLE" \
-              --arg issue_url "$ISSUE_URL" \
-              --arg repo "$REPOSITORY" \
-              --arg action "$GITHUB_ACTION" \
-              '{event: "issue_deliberation", issue_number: $issue_number, issue_title: $issue_title, issue_url: $issue_url, repo: $repo, github_action: $action}')"
+            -d "$payload")"
+
+          echo "HTTP status: $http_code"
+          echo "Response body:"
+          cat "$response_file"
+
+          if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
+            echo "Webhook triggered successfully."
+            exit 0
+          fi
+
+          echo "::error::Cursor webhook failed with HTTP $http_code"
+          exit 1
