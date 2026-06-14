@@ -1,0 +1,21 @@
+{
+  "install": "cd frontend && pnpm install && cd ../backend && go mod download",
+  "start": "docker compose up -d db migrate",
+  "ports": [
+    { "name": "frontend", "port": 3010 },
+    { "name": "backend", "port": 8080 },
+    { "name": "postgres", "port": 5432 }
+  ],
+  "terminals": [
+    {
+      "name": "backend",
+      "command": "cd backend && go run ./cmd/api",
+      "description": "Go API server on port 8080. Requires DATABASE_URL and JWT_SECRET env vars."
+    },
+    {
+      "name": "frontend",
+      "command": "cd frontend && pnpm dev --hostname 0.0.0.0",
+      "description": "Next.js dev server on port 3010."
+    }
+  ]
+}
