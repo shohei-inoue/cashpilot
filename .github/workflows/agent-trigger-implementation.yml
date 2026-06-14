@@ -1,0 +1,35 @@
+# agent:approved ラベル付与時に cashpilot-implementation Automation の Webhook を起動する。
+
+name: Agent Trigger Implementation
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  trigger:
+    if: github.event.label.name == 'agent:approved'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Cursor implementation webhook
+        env:
+          WEBHOOK_URL: ${{ secrets.CURSOR_WEBHOOK_IMPLEMENTATION_URL }}
+          AUTH_TOKEN: ${{ secrets.CURSOR_AUTOMATION_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          if [ -z "$WEBHOOK_URL" ] || [ -z "$AUTH_TOKEN" ]; then
+            echo "Webhook secrets not configured. Skipping."
+            exit 0
+          fi
+          curl -fsSL -X POST "$WEBHOOK_URL" \
+            -H "Authorization: Bearer $AUTH_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --argjson issue_number "$ISSUE_NUMBER" \
+              --arg issue_title "$ISSUE_TITLE" \
+              --arg issue_url "$ISSUE_URL" \
+              --arg repo "$REPOSITORY" \
+              '{event: "issue_implementation", issue_number: $issue_number, issue_title: $issue_title, issue_url: $issue_url, repo: $repo, label: "agent:approved"}')"
