@@ -21,6 +21,7 @@ CashPilot は個人向けのキャッシュフローシミュレーターと収�
 
 Phase 5 の画面実装では、既存の Server Actions（`frontend/src/app/actions/`）と API クライアント（`frontend/src/app/libs/client.ts`）のパターンに従ってください。
 
+
 ## Cursor Automations
 
 このリポジトリでは **自立型エージェント組織** で運用します。詳細は [docs/cursor-automations/autonomous-org.md](docs/cursor-automations/autonomous-org.md) を参照。
