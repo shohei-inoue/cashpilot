@@ -1,0 +1,72 @@
+# Draft PR ではレビューしない。Open（ready_for_review 含む）時に @cursor でレビューを起動する。
+
+name: Agent Trigger Review Merge
+
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+
+concurrency:
+  group: agent-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  pull-requests: write
+
+jobs:
+  trigger:
+    if: >
+      github.event.pull_request.draft == false &&
+      contains(github.event.pull_request.labels.*.name, 'agent:needs-review')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request PR review via @cursor comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr comment "$PR_NUMBER" --repo "$GH_REPO" --body-file - <<EOF
+          @cursor
+
+          PR #${PR_NUMBER}（agent:needs-review）をレビューしてください。必ず gh コマンドを実行すること。
+
+          ## 手順
+
+          1. PR と関連 Issue を読む:
+             gh pr view ${PR_NUMBER} --repo ${GH_REPO}
+             gh pr diff ${PR_NUMBER} --repo ${GH_REPO}
+
+          2. verifier subagent で検証:
+             cd frontend && pnpm lint && pnpm test
+             cd backend && go test ./tests/unit/...
+
+          3. レビュー結果を PR コメントに投稿
+
+          4. 判定:
+
+          ### マージ可（すべて満たす）
+          - lint / test が通過
+          - 受け入れ条件を充足
+          - セキュリティ上の問題なし
+          - diff が Phase 5 スコープ内
+
+          → PR を承認（Approve）
+          → gh pr edit ${PR_NUMBER} --repo ${GH_REPO} --add-label "agent:merge-ready"
+          → 「マージ準備完了。GitHub Actions が自動マージします。」とコメント
+
+          ### 修正必要
+          → 変更要求コメントを投稿
+          → PR に \`@cursor fix\` とコメント（cashpilot-auto-fix が起動）
+          → agent:needs-review を維持
+
+          ### 却下
+          → 理由を詳述
+          → gh pr edit ${PR_NUMBER} --repo ${GH_REPO} --add-label "agent:rejected"
+
+          ## 制約
+
+          - コード変更・PR 作成は行わない（修正は cashpilot-auto-fix へ）
+          - merge ボタンは押さない（agent-auto-merge.yml が実行）
+          - .cursor/approval-policies/ROUTING.md に従うこと
+          EOF
