@@ -7,11 +7,12 @@
 | 項目 | 値 |
 |------|-----|
 | 名前 | `cashpilot-deliberation` |
-| トリガー | **Webhook**（GitHub Actions が Issue イベント時に POST） |
-| リポジトリモード | Single repository |
-| ツール | なし（Issue コメント・ラベルは gh CLI） |
+| トリガー | **不要**（GitHub Actions が `@cursor` コメントで起動） |
+| Automation（Webhook） | オプション。Issue への `gh` 実行は不安定なため **GHA 経由を推奨** |
+| リポジトリモード | Single repository（Automation を使う場合） |
+| ツール | なし |
 
-**注意**: UI に **Issue opened** トリガーはありません。[triggers-guide.md](../triggers-guide.md) 参照。
+**推奨経路**: `.github/workflows/agent-trigger-deliberation.yml` が Issue に `@cursor` コメントを投稿し、吟味を依頼する（手動テストで動作確認済み）。
 
 ## プロンプト
 
