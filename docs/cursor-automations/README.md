@@ -6,10 +6,12 @@ CashPilot プロジェクトで Cursor Automations を活用するためのド�
 
 | ドキュメント | 内容 |
 |-------------|------|
+| [autonomous-org.md](./autonomous-org.md) | **自立型 4 エージェント組織**（意思決定→吟味→実装→マージ） |
+| [agents/](./agents/) | 各エージェントの Automation プロンプト |
 | [setup-guide.md](./setup-guide.md) | Dashboard での初期設定（GitHub 接続、Secrets、On-Demand） |
-| [getting-started.md](./getting-started.md) | PR レビュー Automation（コメントのみ）の作成 |
+| [getting-started.md](./getting-started.md) | PR レビュー Automation（コメントのみ） |
 | [auto-fix-automation.md](./auto-fix-automation.md) | 自動修正 Automation（レビューと分離、`@cursor fix`） |
-| [phase5-automations.md](./phase5-automations.md) | Phase 5（画面 API 連携）向け Automation のプロンプト設計 |
+| [phase5-automations.md](./phase5-automations.md) | Phase 5 向け Automation（implementation に統合） |
 
 ## Automation 設定との関係（Agent Instructions とは）
 
@@ -38,10 +40,19 @@ Cloud Agent / Automation が参照する設定ファイル:
 
 ## 学習パス
 
+### 段階 1: 基本（完了済みであればスキップ可）
+
 1. [セットアップガイド](./setup-guide.md) で Dashboard を整備
-2. [はじめの一歩](./getting-started.md) で PR レビュー Automation（`cashpilot-pr-review`）を作成
+2. [はじめの一歩](./getting-started.md) で PR レビュー Automation を作成
 3. [自動修正 Automation](./auto-fix-automation.md) で `cashpilot-auto-fix` を追加
-4. Phase 5 開発開始時に [phase5-automations.md](./phase5-automations.md) の Automation を追加
+
+### 段階 2: 自立型組織（推奨）
+
+4. [自立型エージェント組織](./autonomous-org.md) の設計を読む
+5. GitHub ラベル 7 個を作成
+6. [agents/](./agents/) の 4 Automation を順に設定
+7. `cashpilot-pr-review` を無効化し `cashpilot-review-merge` に統合
+8. GitHub Actions 自動マージ（`.github/workflows/agent-auto-merge.yml`）を有効化
 
 ## 公式ドキュメント
 

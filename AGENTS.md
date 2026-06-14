@@ -23,14 +23,40 @@ Phase 5 の画面実装では、既存の Server Actions（`frontend/src/app/act
 
 ## Cursor Automations
 
-このリポジトリではレビューと自動修正を **分離** して運用します。詳細は [docs/cursor-automations/](docs/cursor-automations/) を参照。
+このリポジトリでは **自立型エージェント組織** で運用します。詳細は [docs/cursor-automations/autonomous-org.md](docs/cursor-automations/autonomous-org.md) を参照。
+
+### エージェント組織（4 役割）
+
+| エージェント | Automation 名 | 役割 |
+|------------|---------------|------|
+| 意思決定 | `cashpilot-product-decision` | 次タスクを Issue に提案 |
+| 吟味 | `cashpilot-deliberation` | 提案を承認/却下 |
+| 実装 | `cashpilot-implementation` | 承認済み Issue を実装して PR 作成 |
+| レビュー・マージ | `cashpilot-review-merge` | PR レビュー、承認、`agent:merge-ready` 付与 |
+
+補助: `cashpilot-auto-fix`（`@cursor fix` で修正 PR 作成）
+
+### GitHub ラベル（状態管理）
+
+`agent:proposed` → `agent:approved` → `agent:needs-review` → `agent:merge-ready` → 自動マージ
+
+### Subagent（1 実行内の役割分担）
+
+| Subagent | ファイル | 用途 |
+|----------|---------|------|
+| product-planner | `.cursor/agents/product-planner.md` | バックログ分析 |
+| architect | `.cursor/agents/architect.md` | 設計吟味 |
+| implementer | `.cursor/agents/implementer.md` | コード実装 |
+| verifier | `.cursor/agents/verifier.md` | テスト・受け入れ条件検証 |
+
+### 従来の分離構成（併用）
 
 | Automation | 役割 | いつ動くか |
 |------------|------|-----------|
-| `cashpilot-pr-review` | レビューコメントのみ | PR オープン時 |
+| `cashpilot-pr-review` | レビューコメントのみ | **review-merge に統合推奨（無効化）** |
 | `cashpilot-auto-fix` | 修正 PR を作成 | PR に `@cursor fix`、または CI 失敗時 |
 
-### 自動修正時のルール（cashpilot-auto-fix）
+### 自動修正ルール（cashpilot-auto-fix）
 
 **修正してよいもの**
 

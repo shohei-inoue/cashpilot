@@ -42,7 +42,7 @@ CashPilotは、個人のキャッシュフローシミュレーターと収支�
 
 ## Cursor Automations
 
-Cloud Agent を使った自動レビュー・Phase 5 実装支援の設定は [docs/cursor-automations/](docs/cursor-automations/) を参照。エージェント向け手順は [AGENTS.md](AGENTS.md)、VM 環境は [.cursor/environment.json](.cursor/environment.json) に定義しています。
+Cloud Agent を使った自動レビュー・自立型エージェント組織の設定は [docs/cursor-automations/](docs/cursor-automations/) を参照。エージェント向け手順は [AGENTS.md](AGENTS.md)、VM 環境は [.cursor/environment.json](.cursor/environment.json) に定義しています。
 
 ## プロジェクト構造
 
