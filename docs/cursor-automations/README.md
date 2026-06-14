@@ -9,6 +9,7 @@ CashPilot プロジェクトで Cursor Automations を活用するためのド�
 | [autonomous-org.md](./autonomous-org.md) | **自立型 4 エージェント組織**（意思決定→吟味→実装→マージ） |
 | [agents/](./agents/) | 各エージェントの Automation プロンプト |
 | [setup-guide.md](./setup-guide.md) | Dashboard での初期設定（GitHub 接続、Secrets、On-Demand） |
+| [triggers-guide.md](./triggers-guide.md) | **実際の UI トリガー一覧**（Issue トリガーがない問題と代替） |
 | [getting-started.md](./getting-started.md) | PR レビュー Automation（コメントのみ） |
 | [auto-fix-automation.md](./auto-fix-automation.md) | 自動修正 Automation（レビューと分離、`@cursor fix`） |
 | [phase5-automations.md](./phase5-automations.md) | Phase 5 向け Automation（implementation に統合） |

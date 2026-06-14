@@ -1,0 +1,35 @@
+# Issue 作成時に cashpilot-deliberation Automation の Webhook を起動する。
+# agent:proposed ラベル付き Issue のみ転送する。
+
+name: Agent Trigger Deliberation
+
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  trigger:
+    if: >
+      (github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'agent:proposed')) ||
+      (github.event.action == 'labeled' && github.event.label.name == 'agent:proposed')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Cursor deliberation webhook
+        env:
+          WEBHOOK_URL: ${{ secrets.CURSOR_WEBHOOK_DELIBERATION_URL }}
+          AUTH_TOKEN: ${{ secrets.CURSOR_AUTOMATION_TOKEN }}
+        run: |
+          if [ -z "$WEBHOOK_URL" ] || [ -z "$AUTH_TOKEN" ]; then
+            echo "Webhook secrets not configured. Skipping."
+            exit 0
+          fi
+          curl -fsSL -X POST "$WEBHOOK_URL" \
+            -H "Authorization: Bearer $AUTH_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --argjson issue_number ${{ github.event.issue.number }} \
+              --arg issue_title "${{ github.event.issue.title }}" \
+              --arg issue_url "${{ github.event.issue.html_url }}" \
+              --arg repo "${{ github.repository }}" \
+              --arg action "${{ github.event.action }}" \
+              '{event: "issue_deliberation", issue_number: $issue_number, issue_title: $issue_title, issue_url: $issue_url, repo: $repo, github_action: $action}')"

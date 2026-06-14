@@ -7,10 +7,12 @@ PR をレビューし、基準を満たせば承認してマージ準備を整�
 | 項目 | 値 |
 |------|-----|
 | 名前 | `cashpilot-review-merge` |
-| トリガー | Pull request opened, Pull request pushed, CI completed |
-| フィルタ | PR ラベル `agent:needs-review` |
+| トリガー | **Pull request opened**, **Pull request pushed**（+ **CI completed** が UI にあれば追加） |
+| フィルタ | PR ラベル `agent:needs-review`（あれば） |
 | リポジトリモード | Single repository |
 | ツール | Comment on pull request（承認を有効化） |
+
+**注意**: **CI completed** はプランや連携状態によって UI に表示されない場合があります。なければ PR pushed のみで運用。[triggers-guide.md](../triggers-guide.md) 参照。
 
 **既存 Automation との関係**
 

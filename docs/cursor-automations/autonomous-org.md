@@ -73,11 +73,11 @@ GitHub リポジトリ → **Issues** → **Labels** で上記ラベルを作成
    → docs/implementation-flow.md を読み、次タスクを Issue に提案
    → ラベル: agent:proposed
 
-2. [Issue opened] deliberation
+2. [Issue opened] deliberation（Webhook + GitHub Actions）
    → 提案を吟味（readonly subagent: architect）
    → 承認: agent:approved / 却下: agent:rejected
 
-3. [Label: agent:approved] implementation
+3. [Label: agent:approved] implementation（Webhook + GitHub Actions）
    → subagent: planner → implementer → verifier
    → PR 作成、ラベル: agent:needs-review
 
@@ -107,10 +107,11 @@ Cursor Automations には次の制約があります。
 |------|------|-------------|
 | 1 | GitHub ラベル 7 個を作成 | 上記表 |
 | 2 | Subagent 4 個をリポジトリに追加 | [.cursor/agents/](../../.cursor/agents/) |
-| 3 | 意思決定 Automation 作成 | [product-decision.md](./agents/product-decision.md) |
-| 4 | 吟味 Automation 作成 | [deliberation.md](./agents/deliberation.md) |
-| 5 | 実装 Automation 作成 | [implementation.md](./agents/implementation.md) |
-| 6 | レビュー・マージ Automation 作成 | [review-merge.md](./agents/review-merge.md) |
+| 3 | 意思決定 Automation 作成（**Scheduled**） | [product-decision.md](./agents/product-decision.md) |
+| 4 | 吟味 Automation 作成（**Webhook**） | [deliberation.md](./agents/deliberation.md) |
+| 4 | GitHub Secrets に Webhook URL を登録 | [triggers-guide.md](./triggers-guide.md) |
+| 5 | 実装 Automation 作成（**Webhook**） | [implementation.md](./agents/implementation.md) |
+| 6 | レビュー・マージ Automation 作成（**PR トリガー**） | [review-merge.md](./agents/review-merge.md) |
 | 7 | 既存 auto-fix を接続 | [auto-fix-automation.md](./auto-fix-automation.md) |
 | 8 | GitHub Actions マージワークフロー有効化 | [.github/workflows/agent-auto-merge.yml](../../.github/workflows/agent-auto-merge.yml) |
 | 9 | Approval Policy 確認 | [.cursor/approval-policies/ROUTING.md](../../.cursor/approval-policies/ROUTING.md) |

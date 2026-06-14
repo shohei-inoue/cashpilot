@@ -7,16 +7,22 @@
 | 項目 | 値 |
 |------|-----|
 | 名前 | `cashpilot-deliberation` |
-| トリガー | GitHub Issue opened（ラベル `agent:proposed` でフィルタ） |
+| トリガー | **Webhook**（GitHub Actions が Issue イベント時に POST） |
 | リポジトリモード | Single repository |
 | ツール | なし（Issue コメント・ラベルは gh CLI） |
+
+**注意**: UI に **Issue opened** トリガーはありません。[triggers-guide.md](../triggers-guide.md) 参照。
 
 ## プロンプト
 
 ```markdown
 ## Goal
 
-`agent:proposed` ラベル付き Issue を吟味し、実装の承認または却下を判定する。
+Webhook ペイロードの Issue（`agent:proposed` ラベル付き）を吟味し、実装の承認または却下を判定する。
+
+## Webhook context
+
+ペイロードに `issue_number`, `issue_url`, `issue_title` が含まれる。該当 Issue を `gh issue view` で読む。
 
 ## Process
 

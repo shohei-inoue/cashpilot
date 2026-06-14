@@ -7,17 +7,23 @@
 | 項目 | 値 |
 |------|-----|
 | 名前 | `cashpilot-implementation` |
-| トリガー | GitHub Issue label changed → `agent:approved` が追加されたとき |
+| トリガー | **Webhook**（GitHub Actions が `agent:approved` ラベル付与時に POST） |
 | リポジトリモード | Single repository |
 | ベースブランチ | `develop` |
 | ツール | Pull request creation, Comment on pull request |
+
+**注意**: UI に **Issue label changed** トリガーはありません。[triggers-guide.md](../triggers-guide.md) 参照。
 
 ## プロンプト
 
 ```markdown
 ## Goal
 
-`agent:approved` ラベル付き Issue を実装し、PR を作成する。
+Webhook ペイロードの Issue（`agent:approved` ラベル付き）を実装し、PR を作成する。
+
+## Webhook context
+
+ペイロードに `issue_number`, `issue_url`, `issue_title` が含まれる。該当 Issue を `gh issue view` で読む。
 
 ## Process
 
