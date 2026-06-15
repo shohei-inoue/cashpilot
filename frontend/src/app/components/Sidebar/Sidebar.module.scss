@@ -1,6 +1,9 @@
 .sidebar {
+  display: flex;
+  flex-direction: column;
   width: 240px;
   min-width: 240px;
+  gap: var(--space-3);
   padding: var(--space-4);
   background-color: var(--color-bg-subtle);
   border-right: 1px solid var(--color-border);
@@ -21,6 +24,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: var(--space-1);
 }
 
@@ -60,4 +64,42 @@
 
 .text {
   flex: 1;
+}
+
+.logoutSection {
+  margin-top: auto;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.logoutButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+
+  &:not(:disabled):hover {
+    background-color: var(--color-gray-200);
+    color: var(--color-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
 }

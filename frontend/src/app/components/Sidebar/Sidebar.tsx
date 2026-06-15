@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { logout } from '../../actions/auth';
 import { SIDEBAR_ITEMS } from '../../constants/constants';
 import styles from './Sidebar.module.scss';
 
@@ -18,6 +20,23 @@ type SidebarProps = {
 
 const Sidebar = ({ isOpen }: SidebarProps) => {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (isLoggingOut) {
+      return;
+    }
+
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      router.replace('/auth/login');
+      router.refresh();
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <nav
@@ -46,6 +65,17 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
           );
         })}
       </ul>
+      <div className={styles.logoutSection}>
+        <button
+          type="button"
+          className={styles.logoutButton}
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+        >
+          <span className={`material-symbols-rounded ${styles.icon}`}>logout</span>
+          <span className={styles.text}>{isLoggingOut ? 'ログアウト中...' : 'ログアウト'}</span>
+        </button>
+      </div>
     </nav>
   );
 };
