@@ -3,10 +3,12 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Sidebar from './Sidebar';
 
-const mockReplace = vi.fn();
-const mockRefresh = vi.fn();
-const mockPathname = vi.fn(() => '/');
-const mockLogout = vi.fn();
+const { mockReplace, mockRefresh, mockPathname, mockLogout } = vi.hoisted(() => ({
+  mockReplace: vi.fn(),
+  mockRefresh: vi.fn(),
+  mockPathname: vi.fn(() => '/'),
+  mockLogout: vi.fn(),
+}));
 
 vi.mock('next/navigation', () => ({
   usePathname: () => mockPathname(),
@@ -32,14 +34,14 @@ describe('Sidebar', () => {
 
     expect(screen.getByRole('link', { name: /ダッシュボード/ })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /収支入力/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'ログアウト' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /ログアウト/ })).toBeInTheDocument();
   });
 
   it('calls logout and redirects to login page', async () => {
     const user = userEvent.setup();
     render(<Sidebar isOpen={true} />);
 
-    await user.click(screen.getByRole('button', { name: 'ログアウト' }));
+    await user.click(screen.getByRole('button', { name: /ログアウト/ }));
 
     await waitFor(() => {
       expect(mockLogout).toHaveBeenCalledTimes(1);
@@ -57,7 +59,7 @@ describe('Sidebar', () => {
     mockLogout.mockReturnValueOnce(pendingLogout);
 
     render(<Sidebar isOpen={true} />);
-    const logoutButton = screen.getByRole('button', { name: 'ログアウト' });
+    const logoutButton = screen.getByRole('button', { name: /ログアウト/ });
 
     await user.click(logoutButton);
     await waitFor(() => {
