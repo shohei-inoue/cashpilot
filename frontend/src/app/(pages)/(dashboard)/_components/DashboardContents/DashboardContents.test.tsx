@@ -53,6 +53,10 @@ describe('DashboardContents', () => {
     expect(
       screen.getByText('まだ取引がありません。最初の収支を登録しましょう。')
     ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: '収支を入力する' })).toBeInTheDocument();
+    const transactionLinks = screen.getAllByRole('link', { name: '収支を入力する' });
+    expect(transactionLinks.length).toBeGreaterThan(0);
+    expect(transactionLinks.some((link) => link.getAttribute('href') === '/transactions')).toBe(
+      true
+    );
   });
 });
