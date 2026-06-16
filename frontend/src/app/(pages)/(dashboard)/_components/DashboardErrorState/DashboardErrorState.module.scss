@@ -1,0 +1,36 @@
+.header {
+  margin-bottom: var(--space-6);
+}
+
+.actions {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-white-100);
+  text-decoration: none;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s;
+
+  &:hover {
+    text-decoration: none;
+    background-color: var(--color-primary-hover);
+  }
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+}
