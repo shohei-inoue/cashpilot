@@ -21,20 +21,69 @@ const DashboardContents = ({ data }: DashboardContentsProps) => {
   return (
     <MainContent>
       <header className={styles.header}>
-        <Heading level={1}>ダッシュボード</Heading>
-        <div className={styles.actions}>
-          <Link href="/transactions" className={styles.linkButton}>
-            収支を入力する
-          </Link>
-          <Link href="/simulation" className={`${styles.linkButton} ${styles.secondary}`}>
-            シミュレーション
-          </Link>
+        <div>
+          <Heading level={1}>ダッシュボード</Heading>
+          <p className={styles.subtitle}>現状を把握して、次のアクションにつなげましょう。</p>
         </div>
       </header>
 
-      <section className={styles.balanceSection}>
+      <section className={styles.overviewSection}>
         <Card>
-          <BalanceDisplay label="現在の残高" amount={balance} />
+          <div className={styles.sectionHeader}>
+            <Heading level={2} className={styles.sectionTitle}>
+              現状把握
+            </Heading>
+            <p className={styles.sectionHint}>
+              残高と{monthLabel}の収支を1つのカードで確認できます。
+            </p>
+          </div>
+          <div className={styles.balanceWrap}>
+            <BalanceDisplay label="現在の残高" amount={balance} />
+          </div>
+          <dl className={styles.summaryGrid}>
+            <div className={styles.summaryItem}>
+              <dt>今月の収入</dt>
+              <dd className={styles.income}>{formatYen(monthSummary.total_income)}</dd>
+            </div>
+            <div className={styles.summaryItem}>
+              <dt>今月の支出</dt>
+              <dd className={styles.expense}>
+                {formatExpenseTotal(monthSummary.total_expense)}
+              </dd>
+            </div>
+            <div className={styles.summaryItem}>
+              <dt>今月の収支差分</dt>
+              <dd
+                className={
+                  monthSummary.net_cashflow >= 0 ? styles.income : styles.expense
+                }
+              >
+                {formatYen(monthSummary.net_cashflow)}
+              </dd>
+            </div>
+          </dl>
+        </Card>
+      </section>
+
+      <section className={styles.actionsSection}>
+        <Card>
+          <Heading level={2} className={styles.sectionTitle}>
+            次のアクション
+          </Heading>
+          <p className={styles.sectionHint}>
+            収支入力・将来シミュレーション・設定をすぐに開けます。
+          </p>
+          <div className={styles.actions}>
+            <Link href="/transactions" className={styles.linkButton}>
+              収支を入力する
+            </Link>
+            <Link href="/simulation" className={styles.linkButton}>
+              シミュレーション
+            </Link>
+            <Link href="/settings" className={`${styles.linkButton} ${styles.secondary}`}>
+              設定を開く
+            </Link>
+          </div>
         </Card>
       </section>
 
@@ -47,36 +96,6 @@ const DashboardContents = ({ data }: DashboardContentsProps) => {
             取引の累計から算出しています。将来予測はシミュレーション画面で確認できます。
           </p>
           <CashflowChart points={cashflowTrend} />
-        </Card>
-      </section>
-
-      <section className={styles.summarySection}>
-        <Card>
-          <Heading level={2} className={styles.sectionTitle}>
-            {monthLabel}の収支
-          </Heading>
-          <dl className={styles.summaryGrid}>
-            <div className={styles.summaryItem}>
-              <dt>収入</dt>
-              <dd className={styles.income}>{formatYen(monthSummary.total_income)}</dd>
-            </div>
-            <div className={styles.summaryItem}>
-              <dt>支出</dt>
-              <dd className={styles.expense}>
-                {formatExpenseTotal(monthSummary.total_expense)}
-              </dd>
-            </div>
-            <div className={styles.summaryItem}>
-              <dt>収支差分</dt>
-              <dd
-                className={
-                  monthSummary.net_cashflow >= 0 ? styles.income : styles.expense
-                }
-              >
-                {formatYen(monthSummary.net_cashflow)}
-              </dd>
-            </div>
-          </dl>
         </Card>
       </section>
 

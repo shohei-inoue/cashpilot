@@ -28,6 +28,19 @@ export type DashboardData = {
   cashflowTrend: CashflowTrendPoint[];
 };
 
+export type DashboardResult =
+  | {
+      status: "ok";
+      data: DashboardData;
+    }
+  | {
+      status: "unauthorized";
+    }
+  | {
+      status: "error";
+      message: string;
+    };
+
 function buildCashflowTrend(items: CashflowResponse["items"]): CashflowTrendPoint[] {
   const sorted = [...items].sort((a, b) => a.period.localeCompare(b.period));
   let balance = 0;
@@ -42,7 +55,7 @@ function buildCashflowTrend(items: CashflowResponse["items"]): CashflowTrendPoin
 }
 
 /** ダッシュボード表示用データを取得 */
-export async function getDashboardData(): Promise<DashboardData | null> {
+export async function getDashboardData(): Promise<DashboardResult> {
   const client = await createAuthClient();
   const monthRange = getCurrentMonthRange();
   const trendRange = getMonthsRange(12);
@@ -70,13 +83,23 @@ export async function getDashboardData(): Promise<DashboardData | null> {
     ]);
 
     return {
-      monthLabel: getCurrentMonthLabel(),
-      balance: allTimeRes.summary.net_cashflow,
-      monthSummary: monthRes.summary,
-      recentTransactions: transactionsRes.transactions ?? [],
-      cashflowTrend: buildCashflowTrend(cashflowRes.items ?? []),
+      status: "ok",
+      data: {
+        monthLabel: getCurrentMonthLabel(),
+        balance: allTimeRes.summary.net_cashflow,
+        monthSummary: monthRes.summary,
+        recentTransactions: transactionsRes.transactions ?? [],
+        cashflowTrend: buildCashflowTrend(cashflowRes.items ?? []),
+      },
     };
-  } catch {
-    return null;
+  } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return { status: "unauthorized" };
+    }
+
+    return {
+      status: "error",
+      message: "ダッシュボード情報の取得に失敗しました。時間をおいて再試行してください。",
+    };
   }
 }
